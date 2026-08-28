@@ -282,3 +282,121 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
      - Thực thi chạy chính thức 3 kịch bản bằng CLI để sinh raw log .jtl và HTML Dashboard Report.
      - Mở Task Manager (Performance tab) để quay video demo có thuyết minh tiếng Việt >= 6 phút.
   ```
+
+### Promt 10:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 15:49 28/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  ra soat lai toan bo yeu cau @[help/2026.HW05.Performance Testing_En.pdf] va @[help/GUIDE_AND_CHECKLIST_HW05.md] , doi chieu voi project hien tai cua toi xem toi can hoan thanh nhung gi nua? tat ca cac file sinh ra trong test result co can giu nguyen khong, vi toi thay hoi nhieu file dc sinh ra
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Giải đáp về việc lưu trữ file trong test-results/:
+     - Bắt buộc GIỮ NGUYÊN các file: load_results.jtl, stress_results.jtl, spike_results.jtl và 3 thư mục HTML report (load_html_report, stress_html_report, spike_html_report) vì đây là minh chứng chấm điểm cốt lõi của Task 1.
+     - Có thể dọn dẹp file tạm dry_run_test.jtl để cấu trúc gọn gàng.
+  2. Rà soát tổng thể dự án theo checklist HW05:
+     - Đã hoàn thành xuất sắc: Thiết kế kịch bản Data-driven, cấu hình 3 file .jmx chuẩn tên MSSV, thực thi chạy lấy đủ raw log .jtl và HTML reports, bằng chứng phần cứng dxdiag.
+     - Các hạng mục cần hoàn thiện tiếp theo:
+       + Task 2 (AI Analysis + Misinterpretation Hunt): Phân tích log .jtl, chỉ ra lỗi AI suy luận sai và phân loại đề xuất Feasible vs Hallucinated.
+       + Task 3 (Continuous Perf Testing): Thiết kế pipeline CI/CD kiểm soát regression p95 latency kèm sơ đồ Flowchart và phân tích trade-offs.
+       + Báo cáo & Tài liệu: Hoàn thiện Main_Report.md, AI_Critique.md, git_commit_log.txt, README.md (Bảng tự chấm điểm).
+       + Video Demo: Quay video >= 6 phút có thuyết minh tiếng Việt và up YouTube Unlisted.
+  ```
+
+### Promt 11:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 15:53 28/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  file jlt chi la file xuat ra khi chay fil jmx thoi dung khong?
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Giải thích bản chất file .jtl (JMeter Text Log):
+     - Đúng, file .jtl là log dữ liệu thô (Raw execution log) được sinh ra khi thực thi kịch bản .jmx ở chế độ Non-GUI (CLI) hoặc xuất từ Listener.
+     - Cấu trúc bên trong là định dạng CSV/XML ghi nhận chi tiết từng request đơn lẻ (timeStamp, elapsed time/latency, label, responseCode, threadName, success, bytes, connectTime).
+  2. Vai trò cốt lõi trong bài tập lớn HW05:
+     - Đóng vai trò là Ground Truth (bằng chứng trung thực chống gian lận) để giảng viên kiểm chứng số liệu đo đạc thực tế.
+     - Là nguồn dữ liệu gốc để JMeter tự động render thành thư mục HTML Dashboard Report (chứa đồ thị tương tác, APDEX, Percentiles).
+     - Là dữ liệu đầu vào để AI phân tích và sinh viên thực hiện săn lỗi AI hiểu sai (Misinterpretation Hunt trong Task 2).
+  ```
+
+## Task 2: Phân tích Log AI & Săn lỗi (AI Analysis & Misinterpretation Hunt)
+
+### Promt 1:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 15:56 28/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  Phân tích toàn bộ dữ liệu từ 3 file log load_results.jtl, stress_results.jtl, spike_results.jtl, sau đó chỉ ra chi tiết các lỗi AI thường suy luận sai (Misinterpretation Hunt) và lập bảng phản biện đề xuất Feasible vs Hallucinated.
+  Sau khi AI sinh ra các file jmx, tôi chạy thử, phát hiện lỗi và yêu cầu thực hiện 1 số chỉnh sửa thì có được tính vào phần này không? hay đây là 1 phần riêng biệt?
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Giải đáp về phân định mục chấm điểm:
+     - Việc phát hiện lỗi kịch bản JMX (lỗi JSON Extractor lệch đối số, lỗi 401 do thiếu Provisioning User) được tính là minh chứng xuất sắc cho phần "Human Review of AI-generated Test Plans" (Task 1) và "AI Critique".
+     - Phần Task 2 (Misinterpretation Hunt) tập trung vào việc bắt lỗi AI khi diễn giải số liệu thô từ file log .jtl và phản biện đề xuất tối ưu Feasible vs Hallucinated.
+  2. Trích xuất số liệu kỹ thuật chính xác từ 3 file .jtl:
+     - Load Test (889 samples): Avg = 3.88ms, p95 = 12ms, Throughput = 15.41 req/s, Error = 0.00%.
+     - Stress Test (10,882 samples): Avg = 131.26ms, p95 = 784.95ms, p99 = 1157.38ms, Throughput = 121.97 req/s, Error = 0.00%. Bước CancelOrder có p95 = 1200.60ms, Max = 1617ms.
+     - Spike Test (8,848 samples): Avg = 8.71ms, p95 = 23ms, Throughput = 298.41 req/s, Error = 0.00%.
+  3. Phát hiện 3 lỗi suy luận điển hình của AI (Misinterpretation Hunt):
+     - Lỗi 1: Nhầm lẫn Average Latency (131ms) với Tail Latency p95 (785ms) / p99 (1157ms), ngộ nhận hệ thống đáp ứng tốt SLA trong khi 5-10% người dùng bị nghẽn nặng.
+     - Lỗi 2: Đổ lỗi sai nguyên nhân bottleneck (cho rằng CPU/RAM quá tải trong khi nguyên nhân thực sự là SQLite Single-file Write Lock Contention).
+     - Lỗi 3: Suy luận sai bản chất Throughput Spike Test cao hơn Stress Test (do Think Time ngắn hơn chứ không phải do server xử lý tốt hơn).
+  4. Lập bảng phân loại đề xuất tối ưu hóa (Feasible vs Hallucinated):
+     - Feasible: Bật SQLite WAL Mode, Thêm Index cho orders.user_id, In-memory Cache cho API sản phẩm.
+     - Hallucinated: Cài cụm Kubernetes Cluster phân tán (không thể share file SQLite), Bịa đặt API db.useConnectionPool() cho sqlite3.
+  ```
+
+### Promt 2:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 16:01 28/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  những phân tích bạn vừa trình bày bên trên tôi phải thêm vào đâu?
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Hướng dẫn vị trí đưa các nội dung phân tích vào bài nộp chuẩn:
+     - reports/Main_Report.md:
+       + Mục IV (Task 2 — AI Analysis & Misinterpretation Hunt): Chứa toàn bộ Bảng số liệu .jtl, 3 lỗi săn AI (Misinterpretation Hunt) và Bảng đối chiếu Feasible vs Hallucinated.
+       + Mục II (Task 1 — Human Review of Test Plans): Ghi nhận quá trình phát hiện và sửa lỗi kịch bản JMX (JSON Extractor và Provisioning).
+     - reports/AI_Critique.md: Tóm tắt kinh nghiệm phản biện AI (200-300 từ) trả lời 3 câu hỏi bắt buộc theo đề bài.
+     - README.md: Bảng tự chấm điểm (Self-Assessment Table) và tóm tắt kết quả kiểm thử.
+  2. Đề xuất tự động sinh hoàn chỉnh toàn bộ các file báo cáo mẫu vào thư mục reports/.
+  ```
+
+### Promt 3:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 16:04 28/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  hãy tiến hành thực hiện tạo file main_report.md với nội dung tính đến hiện tại đi, còn phần task 3 ta sẽ thực thi sau
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Khởi tạo hoàn chỉnh file reports/Main_Report.md:
+     - Mục I: Cấu hình phần cứng chuẩn theo dxdiag (Intel CPU, 16GB RAM, OpenJDK 21, SQLite3).
+     - Mục II: Thiết kế kịch bản Workflow 2 (Auth + Read + Transactional), cấu hình tham số hóa CSV 6 users, ma trận 3 kịch bản kèm Listeners riêng biệt, ghi nhận quá trình debug Human Review (lỗi 401 và IllegalArgumentException).
+     - Mục III: Bảng thống kê toàn diện số liệu thô từ 3 file .jtl (889 samples Load, 10,882 samples Stress, 8,848 samples Spike) và chi tiết từng bước.
+     - Mục IV (Task 2): 3 lỗi AI suy luận sai (Average vs p95, SQLite Write Lock vs CPU, Throughput Spike vs Stress) và Bảng 5 đề xuất Feasible vs Hallucinated.
+     - Đặt placeholder sẵn cho Task 3 (Continuous Performance Testing).
+  2. Khởi tạo đồng thời file reports/AI_Critique.md (200-300 từ) trả lời 3 câu hỏi phản biện bắt buộc của đề bài.
+  ```
