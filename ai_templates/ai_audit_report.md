@@ -457,3 +457,138 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
    Khi test sinh ra hàng nghìn đơn hàng, câu query này phải quét toàn bảng (Full Table Scan).
    Kết luận: Đề xuất CREATE INDEX idx_orders_user ON orders(user_id) là chuẩn xác 100%.
   ```
+
+### Promt 6:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 20:00 28/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  ok, tái kiểm tra lại toàn bộ pj hiện tại, so với các yêu cầu trong @[help/2026.HW05.Performance Testing_En.pdf] và @[help/GUIDE_AND_CHECKLIST_HW05.md] , cho tôi biết những gì đã, đang và phải hoàn thành, sau đó đề xuất thứ tự thực hiện giúp tôi (bắt đầu viết audit log tiếp đi nhé)
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Rà soát đối chiếu toàn diện 5 hạng mục của đề bài HW05 và Checklist:
+     - Đã hoàn thành (Done): Task 1 (3 kịch bản .jmx, test-data.csv 6 users, chạy test sinh đầy đủ raw .jtl và HTML reports), Bằng chứng phần cứng dxdiag, Task 2 (Phân tích số liệu .jtl, Săn lỗi AI Misinterpretation Hunt đối chiếu source code server.js/database.js, Bảng Feasible vs Hallucinated), Báo cáo phản biện reports/AI_Critique.md.
+     - Đang thực hiện (In-progress): reports/Main_Report.md (đã xong Mục I->IV, chờ Task 3).
+     - Cần hoàn thành tiếp (To-Do): Task 3 (Continuous Perf Testing CI/CD proposal + Mermaid Flowchart + Trade-offs), Agent Skill Python script & README, Ảnh Resource Monitor, Video Demo >= 6 phút, Bảng tự chấm điểm README.md, Xuất git_commit_log.txt và PDF reports.
+  2. Đề xuất lộ trình thứ tự thực hiện tối ưu:
+     - Bước 1: Hoàn thành Task 3 (CI/CD Quality Gate & Mermaid Flowchart) -> Hoàn thiện 100% Main_Report.md.
+     - Bước 2: Tạo Agent Skill (agent-skill/perf_analyzer.py + README.md).
+     - Bước 3: Tạo README.md gốc chứa Self-Assessment Table (100/100) và xuất reports/git_commit_log.txt.
+     - Bước 4: Hướng dẫn bạn chụp ảnh Resource Monitor, quay Video Demo (>= 6 phút) và xuất PDF báo cáo để đóng gói zip nộp bài.
+  ```
+
+## Task 3: Đề xuất Continuous Performance Testing (CI/CD Quality Gate)
+
+### Promt 1:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 20:43 28/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  Task 3 — Continuous Performance Testing proposal (Disrupt)
+  In your conclusion, propose a continuous performance-testing model that watches the SUT's commits, decides whether to run performance tests, and flags p95 regressions. Include a flow chart and a discussion of the trade-offs (cost, false alarms).
+  Có thể giải thích chi tiết giúp tôi yêu cầu này được không?
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Giải thích chi tiết 4 trụ cột cốt lõi của Task 3 (Disrupt - 10 điểm):
+     - Cơ chế theo dõi Commits thông minh (Intelligent Triggering): Không chạy test tràn lan mọi commit mà chỉ kích hoạt khi commit/PR tác động vào backend logic (backend/, database.js, routes, dependencies).
+     - Quy trình CI/CD Automation: Khởi tạo Ephemeral Staging Environment, reset CSDL SQLite, thực thi kịch bản JMeter Non-GUI sinh raw log .jtl.
+     - Quality Gate kiểm soát suy giảm p95 (Regression Flagging): Script tự động so sánh p95 hiện tại với Baseline build trước; nếu p95 tăng > 15% hoặc Error > 1% sẽ tự động đánh fail build và block merge PR.
+     - Sơ đồ trực quan Mermaid Flowchart và Phân tích Trade-offs (Chi phí Runner/Build time vs Nguy cơ cảnh báo giả False Alarms do Noisy Neighbors).
+  2. Đề xuất hoàn thiện trực tiếp vào Mục V của báo cáo Main_Report.md.
+  ```
+
+### Promt 2:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 20:47 28/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  phân rã toàn bộ task ra thành từng mục nhỏ, sau đó thực hiện từng mục 1 để tôi theo dõi, kiểm tra, rồi mới thực hiện mục tiếp theo
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+### Promt 3:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 20:49 28/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  ý tôi là phân rã task 3 chứ ko phải mọi thứ cần làm
+  ```
+
+### Promt 4:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 20:51 28/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  mục 3.1 đã ok, hãy thêm vào report, sau đó tiếp tục với mục 3.2
+  ```
+
+### Promt 5:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 20:53 28/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  mục 3.2 đã hoàn toàn ok rồi nhé
+  ```
+
+### Promt 6:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 20:57 28/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  mục 3.3 đã ok, hãy thêm vào trong main report. Tôi có 1 số thắc mắc về mục 3.2, ở bước chạy Load test, ta có cần phải chạy stress test và spike test nữa nhỉ? này là bạn chỉ đang ví dụ 1 cái hay bỏ sót?
+  ```
+
+### Promt 7:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 20:59 28/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  mục 3.4 này cũng đã ổn rồi, hãy thêm vào đi. Tôi sẽ tiến hành rà soát toàn bộ phần 3 sau
+  ```
+
+### Promt 8:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 21:02 28/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  2 sơ đồ này không xem được ở dạng preview, tôi có nên copy lên mermaid.live, xuất png rồi cho vào folder evidence không?
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Đánh giá tính cần thiết:
+     - Rất nên và khuyến khích xuất PNG cho 2 sơ đồ Mermaid lên mermaid.live để lưu vào evidence/flow2_workflow.png và evidence/continuous_perf_pipeline.png.
+     - Giúp đảm bảo 100% khi render tài liệu Markdown hoặc xuất PDF (Main_Report.pdf), các sơ đồ sẽ luôn hiển thị sắc nét, chuyên nghiệp và không phụ thuộc vào plugin Mermaid của người xem.
+  2. Hướng dẫn cú pháp nhúng ảnh trực tiếp vào reports/Main_Report.md kết hợp song song cả khối code Mermaid và link ảnh minh họa.
+  ```
+
+
+
+
+
+
+
+

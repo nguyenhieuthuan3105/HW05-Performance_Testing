@@ -32,17 +32,10 @@ Bằng chứng cấu hình phần cứng được lưu trữ tại file: `eviden
 
 ## II. THIẾT KẾ KỊCH BẢN KIỂM THỬ END-TO-END (TASK 1)
 
-### 1. Phạm vi Workflow (Workflow 2 — Săn Voucher, Thanh toán và Hủy đơn hàng)
+### 1. Phạm vi Workflow (Workflow — Săn Voucher, Thanh toán và Hủy đơn hàng)
 Kịch bản kiểm thử bao phủ toàn diện cả 3 nhóm endpoint nghiệp vụ theo đúng yêu cầu đề bài:
 
-```mermaid
-graph LR
-    A["01_Auth_Login<br/>(POST /api/login)"] --> B["02_Read_SearchProducts<br/>(GET /api/products?search=...)"]
-    B --> C["03_Read_GetMyOrders<br/>(GET /api/orders/my-orders)"]
-    C --> D["04_Transactional_ApplyCoupon<br/>(POST /api/apply-coupon)"]
-    D --> E["05_Transactional_Checkout<br/>(POST /api/checkout)"]
-    E --> F["06_Transactional_CancelOrder<br/>(PUT /api/orders/:id/cancel)"]
-```
+![Workflow](../evidence/script_flow.png)
 
 - **Nhóm 1 — Auth-heavy:** `POST /api/login` $\rightarrow$ Xác thực thông tin người dùng từ file CSV và trích xuất Bearer JWT Token bằng JSON Extractor (`$.token`). Hệ thống có cơ chế bảo mật khóa tài khoản khi nhập sai 3 lần (3-fail lockout).
 - **Nhóm 2 — Read-heavy:** 
@@ -178,8 +171,80 @@ Sinh viên đã cung cấp toàn bộ dữ liệu thống kê từ 3 file log `.
 
 ---
 
-## V. TASK 3 — ĐỀ XUẤT CONTINUOUS PERFORMANCE TESTING (ĐANG TIẾN HÀNH)
-*(Phần này sẽ được cập nhật chi tiết ở bước tiếp theo bao gồm: Mô hình CI/CD GitHub Actions, Quality Gate kiểm soát suy giảm p95 latency > 15%, Sơ đồ Mermaid Flowchart và Phân tích Trade-offs giữa Chi phí Compute vs Cảnh báo giả False Alarms).*
+## V. TASK 3 — ĐỀ XUẤT MÔ HÌNH CONTINUOUS PERFORMANCE TESTING (CPT)
+
+Nhằm chuyển dịch việc kiểm thử hiệu năng từ giai đoạn cuối kỳ sang tích hợp liên tục trong quy trình phát triển (Shift-Left Performance Testing), tôi đề xuất mô hình **Continuous Performance Testing (CPT)** tự động hóa thông qua CI/CD Pipeline (GitHub Actions).
+
+### 1. Cơ chế theo dõi Commits & Quyết định kích hoạt thông minh (Intelligent Triggering Strategy)
+Trong môi trường phát triển liên tục, việc chạy kịch bản kiểm thử hiệu năng cho mọi commit đơn lẻ sẽ gây tắc nghẽn hàng đợi CI (Queue Congestion) và lãng phí chi phí tài nguyên máy ảo (Runner Credits). Do đó, hệ thống áp dụng cơ chế phân loại và kích hoạt thông minh:
+
+- **Quy tắc BỎ QUA (Skip Test):**
+  - Khi commit chỉ thay đổi các file tĩnh: tài liệu hướng dẫn (`*.md`), hình ảnh giao diện (`*.png`, `*.jpg`), stylesheet (`*.css`, `*.scss`), hoặc cấu hình linter code (`.eslintrc`, `.prettierrc`).
+  - *Hành động:* CI Pipeline bỏ qua bước kiểm thử hiệu năng, chỉ thực thi Unit Test và Static Code Analysis nhanh.
+
+- **Quy tắc KÍCH HOẠT (Trigger Test):**
+  - Khi có sự kiện **Pull Request** nhắm vào các nhánh chính (`main`, `develop`, `release/*`).
+  - HOẶC khi commit có sự sửa đổi trong các khu vực mã nguồn nhạy cảm với hiệu năng:
+    - Thư mục backend logic: `backend/**` (đặc biệt là `server.js`, các route handlers).
+    - Tầng cơ sở dữ liệu: `backend/database.js`, các file SQL schema hoặc database migrations.
+    - Cấu hình thư viện / Runtime: `package.json`, `package-lock.json` (thay đổi phiên bản dependencies).
+
+- **Chiến lược phân tầng kiểm thử (Tiered Testing Strategy):**
+  - **Tầng 1 — Per-Pull Request (Fast Feedback):** Chạy bài kiểm thử ngắn (Mini-Load Test: 20 VUs, thời gian $60\text{s}$). Mục tiêu: Phát hiện sớm các lỗi cú pháp, thuật toán nghẽn làm tăng độ trễ đột biến hoặc gây sập API trước khi merge code.
+  - **Tầng 2 — Nightly Build (Deep Verification):** Lên lịch chạy tự động vào lúc **02:00 AM mỗi ngày** trên nhánh `main` với kịch bản tải nặng (Stress Test 150 VUs và Spike Test 100 VUs). Mục tiêu: Xác định ngưỡng trần chịu tải và phát hiện hiện tượng tích tụ nghẽn khóa CSDL hoặc rò rỉ bộ nhớ (Memory Leak) kéo dài.
+
+### 2. Quy trình thực thi CI & Tiêu chuẩn chặn cổng chất lượng ($p_{95}$ Regression Flagging Rules)
+Khi commit/PR thỏa mãn điều kiện kích hoạt, quy trình kiểm thử tự động diễn ra trên GitHub Actions Runner qua 2 bước cốt lõi:
+
+#### a. Môi trường thực thi cô lập & Kịch bản áp dụng
+1. **Thiết lập môi trường:** Runner khởi tạo môi trường sạch (Node.js 20, Java OpenJDK 21, Apache JMeter 5.6.3).
+2. **Khởi chạy SUT:** Khởi động backend nền (`npm start &`) tại `http://localhost:3000`, reset CSDL SQLite và nạp sẵn 6 tài khoản kiểm thử (`POST /api/register`).
+3. **Healthcheck:** Kiểm tra API `GET /api/products` phản hồi HTTP 200 trước khi bơm tải.
+4. **Phân bổ kịch bản thực thi:**
+   - *Trên từng Pull Request:* Thực thi kịch bản `23127125_Load_20260828.jmx` (Mini-Load: 20–30 VUs) để kiểm tra nhanh trong 60 giây.
+   - *Trên Nightly Pipeline (Lên lịch hàng đêm) & Pre-release:* Thực thi chuỗi liên hoàn cả 3 bài test: **Load Test** $\rightarrow$ **Stress Test (150 VUs)** $\rightarrow$ **Spike Test (100 VUs)** để đánh giá khả năng chịu tải cực hạn và độ bền vững toàn diện của hệ thống.
+5. **Xuất kết quả:** Lưu trữ raw log `ci_results.jtl` và sinh HTML Dashboard Report.
+
+#### b. Công thức & Tiêu chuẩn Quality Gate
+Script phân tích tự động trích xuất các chỉ số từ `ci_results.jtl` và đối chiếu với file mốc chuẩn `perf_baseline.json` (được lưu trữ từ lần build ổn định gần nhất):
+
+$$\Delta p_{95} = \frac{p_{95\text{ (Build hiện tại)}} - p_{95\text{ (Baseline)}}}{p_{95\text{ (Baseline)}}} \times 100\%$$
+
+| Tiêu chí đánh giá | Điều kiện ĐẠT (PASS) | Điều kiện SUY THOÁI (FAIL / REGRESSION) |
+| :--- | :---: | :---: |
+| **Độ trễ Phân vị 95 ($p_{95}$ Latency)** | $\Delta p_{95} \le +15\%$ | **$\Delta p_{95} > +15\%$** *(Phát hiện Performance Regression)* |
+| **Độ trễ Phân vị 95 tuyệt đối** | $p_{95} \le 500\text{ ms}$ (SLA) | **$p_{95} > 500\text{ ms}$** *(Vi phạm SLA hệ thống)* |
+| **Tỷ lệ lỗi (Error Rate)** | $\text{Error Rate} \le 1.0\%$ | **$\text{Error Rate} > 1.0\%$** *(Lỗi chức năng / Sập API)* |
+| **Thông lượng (Throughput)** | $\text{TPS} \ge 90\% \times \text{Baseline TPS}$ | **$\text{TPS} < 90\% \times \text{Baseline TPS}$** *(Tụt thông lượng)* |
+
+#### c. Cơ chế thực thi (Enforcement & Action)
+- **Khi FAIL:** Đánh dấu FAILED, tự động **Block Merge** trên Pull Request, xuất bảng chi tiết endpoint bị chậm lên GitHub PR Comment và gửi cảnh báo khẩn qua Webhook Slack/Discord.
+- **Khi PASS:** Cho phép Merge PR, tự động cập nhật số liệu $p_{95}$ mới vào `perf_baseline.json` và lưu trữ HTML Report Dashboard làm artifact.
+
+### 3. Sơ đồ luồng hoạt động trực quan (Mermaid Flowchart)
+Chu trình tự động hóa Continuous Performance Testing được mô tả trực quan qua sơ đồ luồng sau:
+
+![Continuous Performance Testing Pipeline](../evidence/continuous_performance_testing_diagram.png)
+
+### 4. Thảo luận các Đánh đổi Kỹ thuật (Trade-offs Discussion)
+
+#### a. Đánh đổi 1: Chi phí tài nguyên & Thời gian chạy vs Độ bao phủ kiểm thử (Compute Cost & Build Time vs Test Coverage)
+- **Vấn đề thực tế:** 
+  - Nếu thực thi đầy đủ các kịch bản tải nặng (Stress Test 150 VUs, Endurance Test) cho mọi commit đơn lẻ, một đội ngũ có 20 lập trình viên tạo 50 commits/ngày sẽ tiêu tốn hàng trăm giờ máy ảo CI (CI Runner Minutes). Chi phí hạ tầng điện toán đám mây sẽ tăng vọt, đồng thời gây tắc nghẽn hàng đợi CI (Queue Congestion), kéo dài thời gian phản hồi (Delivery Lead Time).
+  - Ngược lại, nếu chỉ chạy Smoke Test rất nhẹ (1–5 VUs trong 10 giây), pipeline chạy rất nhanh và rẻ nhưng hoàn toàn không thể phát hiện được hiện tượng **tranh chấp khóa ghi CSDL SQLite (Write Lock Contention)** hay sự suy giảm độ trễ ở đuôi phân phối $p_{95} / p_{99}$.
+- **Giải pháp tối ưu (Optimized Strategy):**
+  - Áp dụng **Chiến lược Phân tầng (Hybrid Tiered Model)**: Dành 90% lượt chạy cho bài Mini-Load Test nhanh ($60\text{s}$) chặn cổng Pull Request, và dồn các bài test nặng tốn tài nguyên (Stress / Spike) vào ban đêm (Off-peak hours lúc 02:00 AM).
+  - Tận dụng triệt để **Path Filtering** (chỉ kích hoạt khi sửa đổi `backend/**`, `database.js`) để cắt giảm hơn 60% số lần chạy không cần thiết.
+
+#### b. Đánh đổi 2: Nguy cơ Cảnh báo giả vs Biến động môi trường máy ảo (False Alarms vs Noisy Neighbor Effect)
+- **Vấn đề thực tế:** 
+  - Các CI Runner công cộng dùng chung (Shared Virtual Machines như GitHub-hosted Runners) thường bị ảnh hưởng bởi hiện tượng **"Noisy Neighbors"** (các tiến trình của người dùng khác trên cùng máy chủ vật lý tranh chấp CPU/Disk I/O ngẫu nhiên).
+  - Điều này khiến độ trễ $p_{95}$ có thể bị trồi sụt bất thường từ $12\text{ms} \to 25\text{ms}$ dù mã nguồn không hề thay đổi. Nếu đặt ngưỡng Quality Gate quá nhạy (ví dụ $\Delta p_{95} > 5\%$), hệ thống sẽ liên tục báo động giả (**False Alarms / Flaky Tests**), làm gián đoạn công việc của lập trình viên và gây ra hội chứng "lờn cảnh báo" (Alert Fatigue).
+  - Ngược lại, nếu nới lỏng ngưỡng quá rộng (ví dụ $\Delta p_{95} > 50\%$), hệ thống sẽ bỏ lọt các suy thoái hiệu năng nghiêm trọng (False Negatives).
+- **Giải pháp tối ưu (Optimized Strategy):**
+  - **Biên độ dung sai hợp lý (Tolerance Margin):** Thiết lập ngưỡng cảnh báo ở mức $\Delta p_{95} > +15\% - 20\%$ để triệt tiêu các dao động nhiễu môi trường thông thường.
+  - **Cơ chế Auto-Retry thông minh:** Khi phát hiện vi phạm Quality Gate lần 1, hệ thống không vội vàng đánh fail build mà tự động dọn dẹp môi trường và chạy lại lần 2. Nếu lần 2 vẫn vi phạm $\rightarrow$ Khẳng định 100% là suy thoái hiệu năng thực sự từ mã nguồn (True Positive Regression).
+  - **Dedicated Bare-metal Runner:** Triển khai Self-hosted Runner trên máy chủ vật lý riêng biệt cho các bài kiểm thử hiệu năng quan trọng để cô lập hoàn toàn tài nguyên phần cứng.
 
 ---
 
