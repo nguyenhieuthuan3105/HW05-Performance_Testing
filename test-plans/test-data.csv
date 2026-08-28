@@ -1,0 +1,7 @@
+email,password,search_keyword,coupon_code,product_id,quantity,name,phone,address
+test@eshop.com,Test1234!,iPhone,SAVE10,1,1,Nguyen Van A,0901234567,123 Nguyen Trai Q5 TP.HCM
+user1@eshop.com,Test1234!,Samsung,SAVE10,2,2,Tran Thi B,0912345678,456 Le Duan Q1 TP.HCM
+user2@eshop.com,Test1234!,Laptop,SAVE10,3,1,Le Van C,0987654321,789 CMT8 Q10 TP.HCM
+user3@eshop.com,Test1234!,Pro,SAVE10,1,1,Pham Thi D,0933221144,321 Dien Bien Phu Q3 TP.HCM
+user4@eshop.com,Test1234!,MacBook,SAVE10,2,1,Hoang Van E,0944556677,654 Vo Thi Sau Q3 TP.HCM
+user5@eshop.com,Test1234!,Tai nghe,SAVE10,3,2,Doan Van F,0955667788,987 Hoang Van Thu TB TP.HCM
