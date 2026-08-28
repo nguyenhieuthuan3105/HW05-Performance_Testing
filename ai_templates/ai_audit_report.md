@@ -332,8 +332,34 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
 
 ### Promt 1:
 
-- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Công cụ AI sử dụng:** ChatGPT 4.0
 - **Ngày giờ tương tác:** 15:56 28/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+   ```text
+   Tôi vừa thực hiện 3 bài kiểm thử hiệu năng (Performance Testing) bằng Apache JMeter cho hệ thống thương mại điện tử EShop (Backend viết bằng Node.js/Express.js và CSDL SQLite). 
+   Kịch bản kiểm thử là một luồng End-to-End gồm 6 bước nghiệp vụ:
+   01_Auth_Login -> 02_Read_SearchProducts -> 03_Read_GetMyOrders -> 04_Transactional_ApplyCoupon -> 05_Transactional_Checkout -> 06_Transactional_CancelOrder.
+   Dưới đây là số liệu thống kê kỹ thuật chính xác trích xuất từ 3 file raw log (.jtl) của tôi:
+   Dựa vào các số liệu trên, bạn hãy giúp tôi:
+   1. Đánh giá hiệu năng tổng thể của hệ thống và nhận xét xem hệ thống có đạt tiêu chuẩn SLA không.
+   2. Xác định các điểm nghẽn (Bottlenecks) lớn nhất của hệ thống và giải thích nguyên nhân gây nghẽn.
+   3. So sánh khả năng xử lý tải giữa bài Stress Test và Spike Test.
+   4. Đề xuất 4-5 giải pháp tối ưu hóa cụ thể về mặt kiến trúc phần mềm, cơ sở dữ liệu và hạ tầng để cải thiện hiệu năng.
+   ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+   1. Đánh giá SLA: Hệ thống đạt SLA ở Load Test (p95=12ms) và Spike Test (p95=23ms), nhưng Fail SLA ở Stress Test (p95=785ms > 500ms). Hệ thống không bị crash (Error 0%) mà bị suy thoái hiệu năng (Degradation).
+   2. Điểm nghẽn chính: Xác định 06_Transactional_CancelOrder là bottleneck lớn nhất (Avg 199ms, p95 1200ms, Max 1617ms) do tranh chấp khóa ghi (SQLite Write Lock Contention).
+   3. So sánh Spike vs Stress: Spike xử lý burst traffic ngắn hạn tốt (298 req/s), còn Stress Test duy trì tải dài làm tích tụ hàng đợi ghi CSDL.
+   4. Đề xuất tối ưu: Chuyển sang PostgreSQL với Connection Pool, tối ưu transaction scope Checkout/CancelOrder, đánh Index cho orders.user_id, dùng Redis Cache cho Catalog và tách Message Queue/Workers.
+  ```
+
+### Promt 2:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 16:01 28/08/2026
 - **Câu lệnh đã hỏi (Prompt):**
 
   ```text
@@ -359,10 +385,10 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
      - Hallucinated: Cài cụm Kubernetes Cluster phân tán (không thể share file SQLite), Bịa đặt API db.useConnectionPool() cho sqlite3.
   ```
 
-### Promt 2:
+### Promt 3:
 
 - **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
-- **Ngày giờ tương tác:** 16:01 28/08/2026
+- **Ngày giờ tương tác:** 16:31 28/08/2026
 - **Câu lệnh đã hỏi (Prompt):**
 
   ```text
@@ -380,10 +406,10 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
   2. Đề xuất tự động sinh hoàn chỉnh toàn bộ các file báo cáo mẫu vào thư mục reports/.
   ```
 
-### Promt 3:
+### Promt 4:
 
 - **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
-- **Ngày giờ tương tác:** 16:04 28/08/2026
+- **Ngày giờ tương tác:** 19:04 28/08/2026
 - **Câu lệnh đã hỏi (Prompt):**
 
   ```text
@@ -399,4 +425,35 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
      - Mục IV (Task 2): 3 lỗi AI suy luận sai (Average vs p95, SQLite Write Lock vs CPU, Throughput Spike vs Stress) và Bảng 5 đề xuất Feasible vs Hallucinated.
      - Đặt placeholder sẵn cho Task 3 (Continuous Performance Testing).
   2. Khởi tạo đồng thời file reports/AI_Critique.md (200-300 từ) trả lời 3 câu hỏi phản biện bắt buộc của đề bài.
+  ```
+
+### Promt 5:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 19:52 28/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  D:\STD\Y3\Y3S3\KiemThuPM\eshop-sut-main\eshop-sut-main\backend (http://localhost:3000 đang chạy) đây là phần src của backend, bạn hãy vào kiểm tra lại 1 lượt các phần có liên quan tới các api mà ta gọi, sau đó xác thực tính hợp lý của các lỗi và các phản biện, đánh giá mà ta đưa ra đối với các lỗi hallucinate và các đề xuất tối ưu của ai trong phần [Main_Report.md](file;file:///d%3A/STD/Y3/Y3S3/KiemThuPM/hw/hw5/reports/Main_Report.md) task 2 nhé, làm thêm 1 lần nữa để chắc chắn.
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+   1. Xác thực lỗi Hallucination 1 (ChatGPT bịa ra Explicit Transaction đa bước BEGIN...COMMIT):
+   Đối chiếu server.js:
+   Endpoint POST /api/checkout (dòng 297–309): Chỉ có duy nhất 1 hàm db.run("INSERT INTO orders ...").
+   Endpoint PUT /api/orders/:id/cancel (dòng 321–342): Chỉ có 1 câu SELECT kiểm tra và 1 câu db.run("UPDATE orders SET status = 'canceled' WHERE id = ?").
+   Không hề có khối BEGIN TRANSACTION ... COMMIT hay logic cập nhật trừ kho product/inventory như ChatGPT tưởng tượng.
+   Kết luận: ChatGPT đã tự suy diễn sai lệch mã nguồn.
+   2. Xác thực nguyên nhân nghẽn và Đề xuất tối ưu SQLite WAL Mode:
+   Đối chiếu database.js (dòng 1–11):
+   SQLite được mở trực tiếp: new sqlite3.Database(dbPath, ...) và hoàn toàn chạy ở chế độ Rollback Journal mặc định, không hề có lệnh PRAGMA journal_mode = WAL;.
+   Do đó, khi 150 VUs cùng INSERT đơn hàng và UPDATE hủy đơn, SQLite khóa độc quyền (Exclusive File Lock) toàn bộ file CSDL, tạo thành hàng đợi nghẽn.
+   Việc sinh viên đề xuất thêm db.run("PRAGMA journal_mode = WAL;"); và db.run("PRAGMA busy_timeout = 5000;"); là giải pháp vàng, khả thi và tốn đúng 1 dòng code.
+   3. Xác thực Đề xuất Database Indexing:
+   Đối chiếu database.js (dòng 74–81):
+   Bảng orders được tạo với: id INTEGER PRIMARY KEY, user_id INTEGER, total_amount INTEGER, status TEXT... mà không hề có Index trên cột user_id.
+   Trong khi đó, GET /api/orders/my-orders (server.js dòng 313) lại chạy SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC.
+   Khi test sinh ra hàng nghìn đơn hàng, câu query này phải quét toàn bảng (Full Table Scan).
+   Kết luận: Đề xuất CREATE INDEX idx_orders_user ON orders(user_id) là chuẩn xác 100%.
   ```

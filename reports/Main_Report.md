@@ -26,7 +26,7 @@ Bằng chứng cấu hình phần cứng được lưu trữ tại file: `eviden
 | **Bộ nhớ RAM** | 16.0 GB RAM |
 | **Java Runtime** | OpenJDK 21.0.8 LTS (64-bit) |
 | **Node.js Runtime** | Node.js v20.x / Express.js Backend |
-| **Cơ sở dữ liệu** | SQLite 3 (Single-file embedded database) |
+| **Cơ sở dữ liệu** | SQLite 3 (Single-file embedded database `database.sqlite`) |
 
 ---
 
@@ -76,7 +76,7 @@ Nhằm tránh việc hàng trăm Virtual Users dùng chung 1 tài khoản gây x
 ### 4. Human Review & Sửa lỗi kịch bản do AI sinh ra (Human-in-the-loop Debugging)
 Trong quá trình thiết kế ban đầu với AI, sinh viên đã trực tiếp chạy Dry-Run và phát hiện **2 lỗi nghiêm trọng** trong mã kịch bản JMeter:
 1. **Lỗi 1 (401 Unauthorized do thiếu Provisioning Data):** AI sinh các tài khoản `user1..user5` trong CSV nhưng không kiểm tra CSDL SUT đã có các user này hay chưa. Sinh viên đã yêu cầu tích hợp cơ chế nạp sẵn tài khoản trực tiếp vào DB backend.
-2. **Lỗi 2 (IllegalArgumentException tại JSONPostProcessor):** AI đã cấu hình thuộc tính `jsonPathExprs` chứa 3 đường dẫn ngăn cách bởi dấu chấm phẩy (`$.order.id;$.id;$.order_id`) nhưng `referenceNames` chỉ khai báo 1 tên biến (`order_id`). Sự lệch pha số lượng đối số này khiến JMeter ném ngoại lệ và hủy ngang bước `05_Transactional_Checkout`, kéo theo bước 06 bị lỗi URI (`/api/orders/${order_id}/cancel`). Sinh viên đã đọc trực tiếp mã nguồn `backend/server.js`, xác định đúng trường `orderId` và chuẩn hóa lại thành duy nhất `$.orderId`.
+2. **Lỗi 2 (IllegalArgumentException tại JSONPostProcessor):** AI đã cấu hình thuộc tính `jsonPathExprs` chứa 3 đường dẫn ngăn cách bởi dấu chấm phẩy (`$.order.id;$.id;$.order_id`) nhưng `referenceNames` chỉ khai báo 1 tên biến (`order_id`). Sự lệch pha số lượng đối số này khiến JMeter ném ngoại lệ và hủy ngang bước `05_Transactional_Checkout`, kéo theo bước 06 bị lỗi URI (`/api/orders/${order_id}/cancel`). Sinh viên đã đọc trực tiếp mã nguồn `backend/server.js` (dòng 307: `res.json({ message: "Checkout successful", orderId: this.lastID })`), xác định đúng trường `orderId` và chuẩn hóa lại thành duy nhất `$.orderId`.
 
 ---
 
@@ -112,40 +112,69 @@ Dữ liệu thô thực tế được trích xuất từ 3 file log `.jtl` trong
 
 ---
 
-## IV. TASK 2 — PHÂN TÍCH LOG AI & SĂN LỖI (MISINTERPRETATION HUNT)
+## IV. TASK 2 — PHÂN TÍCH LOG AI & SĂN LỖI (MISINTERPRETATION HUNT & CRITIQUE)
 
-### 1. Săn lỗi hiểu sai số liệu của AI (Misinterpretation Hunt)
+Sinh viên đã cung cấp toàn bộ dữ liệu thống kê từ 3 file log `.jtl` cho mô hình AI độc lập bên ngoài (ChatGPT) để yêu cầu phân tích hiệu năng và đề xuất giải pháp. Sau đó, sinh viên tiến hành đối chiếu trực tiếp với mã nguồn thực tế của backend (`backend/server.js` và `backend/database.js`) để xác thực đúng sai và phản biện chuyên môn:
 
-#### ❌ Lỗi 1: AI nhầm lẫn giữa Average Latency (131.26 ms) và Tail Latency $p_{95}$ (784.95 ms) / $p_{99}$ (1157.38 ms)
-- **Nhận định sai lệch của AI:** Khi đọc log `stress_results.jtl`, AI đưa ra kết luận: *"Hệ thống SUT xử lý Stress Test cực kỳ ấn tượng với thời gian phản hồi trung bình chỉ 131.26 ms (< 200 ms theo chuẩn SLA ngành), đảm bảo trải nghiệm người dùng mượt mà ở mọi thời điểm"*.
-- **Số liệu Ground Truth đối chứng từ file `.jtl`:**
-  - Phân phối độ trễ trong thực tế bị **lệch cực độ (Heavy-tailed Skewed Distribution)**. Trung vị ($p_{50}$) chỉ là $7.00\text{ ms}$, nhưng **$5\%$ người dùng ($p_{95}$) phải chịu độ trễ lên đến $784.95\text{ ms}$ (gấp 6 lần Avg)**, và **$1\%$ người dùng ($p_{99}$) bị nghẽn tới $1157.38\text{ ms}$ ($> 1.15\text{s}$)**.
-  - Đặc biệt tại bước `06_Transactional_CancelOrder`, $p_{95}$ vọt lên tới **$1200.60\text{ ms}$** và Max là **$1617.00\text{ ms}$**. 
-  - **Hậu quả kỹ thuật:** Nếu tin theo AI, nhóm phát triển sẽ bỏ lọt nguy cơ sụt giảm nghiêm trọng trải nghiệm người dùng đối với các giao dịch nhạy cảm ở đuôi phân phối tải.
-
-#### ❌ Lỗi 2: AI chẩn đoán sai nguyên nhân Bottleneck (Đổ lỗi cho CPU/Memory Leak thay vì SQLite Write Lock Contention)
-- **Nhận định sai lệch của AI:** AI đưa ra chẩn đoán: *"Thời gian phản hồi tăng vọt trong Stress Test là do Server Node.js bị quá tải CPU (CPU Saturation) hoặc hiện tượng Memory Leak khiến Event Loop bị block"*.
-- **Số liệu Ground Truth đối chứng từ file `.jtl` & Mã nguồn SUT:**
-  - Nhìn vào bảng chi tiết từng Sampler, các request đọc (`02_Read_SearchProducts`, `04_ApplyCoupon`) có $p_{95} \approx 724\text{ ms}$, trong khi các request ghi/cập nhật (`06_CancelOrder`) có $p_{95} = 1200.60\text{ ms}$ và Max $1617\text{ ms}$.
-  - Nguyên nhân kỹ thuật thực sự: SUT EShop sử dụng **SQLite ở chế độ mặc định (Single-file database)** không bật chế độ WAL. Khi 150 VUs đồng thời thực hiện `INSERT INTO orders` (Checkout) và `UPDATE orders SET status = 'canceled'` (CancelOrder), SQLite phải khóa độc quyền (Exclusive File Lock) toàn bộ file database, tạo thành **hàng đợi nghẽn ghi (Write Lock Contention)**, hoàn toàn không phải do thiếu CPU hay tràn RAM.
-
-#### ❌ Lỗi 3: AI suy luận sai về Throughput giữa Spike Test và Stress Test
-- **Nhận định sai lệch của AI:** AI nhận định: *"Hệ thống xử lý tải đột biến Spike Test tốt hơn Stress Test vì Throughput Spike đạt đỉnh xấp xỉ 300 req/s, trong khi Stress Test chỉ đạt 122 req/s"*.
-- **Số liệu Ground Truth đối chứng từ file `.jtl` & Kịch bản Test Plan:**
-  - Spike Test đạt throughput cao ($298.41\text{ req/s}$) là do cấu hình kịch bản có **Think Time ngắn ($300\text{ms} \pm 100\text{ms}$)** và thời gian dồn tải gấp khúc trong 30s.
-  - Ở Stress Test, độ trễ ghi CSDL kéo dài ($p_{95} \approx 785\text{ms}$) kết hợp với Think Time $800\text{ms}$ làm tăng tổng thời gian một chu kỳ E2E của mỗi Virtual User, khiến tần suất gửi request tự nhiên giảm xuống. Đây là đặc tính điều hòa nhịp độ (Closed Workload Model) của JMeter chứ không phản ánh khả năng xử lý của server.
+### 1. Đánh giá những điểm AI phân tích chính xác (Strengths)
+1. **Phát hiện suy thoái hiệu năng (Performance Degradation) dưới tải cao:** AI chỉ ra chính xác hệ thống đạt SLA ở Load Test ($p_{95} = 12\text{ ms}$) và Spike Test ($p_{95} = 23\text{ ms}$), nhưng bị suy giảm hiệu năng (Fail SLA $p_{95} \le 500\text{ ms}$) ở Stress Test với $p_{95} = 784.95\text{ ms}$ và $p_{99} = 1157.38\text{ ms}$.
+2. **Xác định đúng Bottleneck chính:** AI nhận diện đúng `06_Transactional_CancelOrder` là điểm nghẽn nghiêm trọng nhất với $Avg = 199.31\text{ ms}$, $p_{95} = 1200.60\text{ ms}$ và $Max = 1617\text{ ms}$ (gấp $1.6 - 1.8$ lần các API khác).
+3. **Phát hiện tính chất phân phối đuôi dài (Heavy-tailed distribution):** AI nhận định đúng việc $Median = 7\text{ ms}$ nhưng $p_{95} = 785\text{ ms}$ thể hiện hiện tượng xếp hàng chờ tài nguyên (Queueing/Lock contention).
 
 ---
 
-### 2. Bảng phản biện đề xuất tối ưu hóa (Feasible vs Hallucinated Recommendations)
+### 2. Săn lỗi hiểu sai và ảo tưởng của AI đối chiếu mã nguồn thực tế SUT (Misinterpretation Hunt)
 
-| STT | Đề xuất tối ưu hóa của AI | Phân loại | Đánh giá & Phản biện kỹ thuật chi tiết |
+#### Lỗi 1: Ảo tưởng về mã nguồn nghiệp vụ SUT (Hallucination of SUT Transaction Logic)
+- **Nhận định sai lệch của AI:** ChatGPT suy diễn mã nguồn của SUT đang sử dụng các explicit transaction đa bước phức tạp:
+  ```sql
+  BEGIN TRANSACTION
+      UPDATE order
+      UPDATE product/inventory
+      ...
+  COMMIT
+  ```
+  từ đó AI khuyên *"cần giảm Transaction Scope bằng cách đưa Validate/Prepare data ra ngoài và chỉ BEGIN/COMMIT cho các lệnh UPDATE"*.
+- **Số liệu Ground Truth đối chứng từ mã nguồn SUT (`backend/server.js` lines 297–342):**
+  - Trong thực tế, mã nguồn SUT EShop **hoàn toàn KHÔNG sử dụng explicit transaction (`BEGIN...COMMIT`)**, cũng không hề có các thao tác cập nhật tồn kho `product/inventory` phức tạp.
+  - Endpoint `POST /api/checkout` (dòng 297) chỉ thực thi **1 câu INSERT đơn lẻ**:
+    ```javascript
+    db.run("INSERT INTO orders (user_id, total_amount, status, shipping_address) VALUES (?, ?, ?, ?)", [userId, total_amount, "pending", shipping_address], ...)
+    ```
+  - Endpoint `PUT /api/orders/:id/cancel` (dòng 321) chỉ thực thi 1 câu `SELECT` rồi đến 1 câu `UPDATE` đơn lẻ:
+    ```javascript
+    db.run("UPDATE orders SET status = ? WHERE id = ?", ["canceled", req.params.id], ...)
+    ```
+  - **Bản chất lỗi:** AI đã tự "bịa đặt" ra logic nghiệp vụ phức tạp của một hệ thống thương mại điện tử lớn thay vì bám sát vào mã nguồn thực tế của SUT.
+
+#### Lỗi 2: Đề xuất kiến trúc quá đà và bỏ quên giải pháp tối ưu cốt lõi của SQLite (Over-engineering & Missed Core Optimization)
+- **Nhận định sai lệch của AI:** AI đề xuất chuyển đổi toàn bộ hệ thống sang **cụm PostgreSQL phân tán** và dựng nguyên một hệ sinh thái phức tạp gồm: *Load Balancer + Multi Node.js Instances + Redis + PostgreSQL + Message Queue + Background Workers*.
+- **Phản biện kỹ thuật dựa trên `backend/database.js`:**
+  - Trong `backend/database.js` (dòng 1–11), SQLite đang được khởi tạo ở chế độ mặc định (Rollback Journal mode). Ở chế độ này, mỗi thao tác Ghi (`INSERT` hay `UPDATE`) sẽ kích hoạt **EXCLUSIVE Lock** khóa toàn bộ file database, bắt mọi luồng khác phải chờ.
+  - **Giải pháp vàng bị AI bỏ quên:** AI hoàn toàn không đề cập đến giải pháp tối ưu trực tiếp và rẻ nhất: **Bật chế độ SQLite WAL (Write-Ahead Logging)** bằng cách thêm lệnh:
+    ```javascript
+    db.run("PRAGMA journal_mode = WAL;");
+    db.run("PRAGMA busy_timeout = 5000;");
+    ```
+    Chế độ WAL cho phép 1 luồng Ghi và nhiều luồng Đọc diễn ra song song mà không khóa lẫn nhau, giải quyết tức thì điểm nghẽn $p_{95}$ chỉ với đúng **1 dòng code** mà không tốn chi phí thay đổi CSDL sang PostgreSQL.
+
+#### Lỗi 3: Đề xuất Cache dữ liệu Transaction có rủi ro Dirty Data cao
+- **Nhận định sai lệch của AI:** AI khuyến nghị sử dụng Redis Cache lưu danh sách đơn hàng của người dùng theo key `orders:user:<userId>`.
+- **Phản biện kỹ thuật:**
+  - Trong kịch bản nghiệp vụ E2E Flow 2, người dùng liên tục Checkout rồi Cancel Order ngay lập tức. Nếu áp dụng cache cho `orders:user:<userId>` mà không có cơ chế Cache Invalidation tức thời, API `03_Read_GetMyOrders` và `06_Transactional_CancelOrder` sẽ gặp lỗi đọc dữ liệu cũ (Stale / Dirty Read — đơn vừa tạo chưa thấy, đơn đã hủy vẫn báo pending), phá vỡ tính nhất quán nghiệp vụ (Data Inconsistency).
+
+---
+
+### 3. Bảng phân loại đề xuất tối ưu hóa (Feasible vs Hallucinated Recommendations)
+
+| STT | Đề xuất tối ưu hóa của AI | Phân loại | Đánh giá & Phản biện kỹ thuật chi tiết đối chiếu Codebase |
 | :---: | :---| :---: | :---|
-| **1** | **Bật chế độ SQLite WAL (Write-Ahead Logging)** | ✅ **Khả thi (Feasible)** | **Hiệu quả tức thì 100%.** SQLite ở chế độ WAL cho phép các luồng Đọc và Ghi diễn ra đồng thời không khóa lẫn nhau. Chỉ cần thêm 1 dòng code `db.run("PRAGMA journal_mode = WAL;");` vào `database.js` là giải quyết ngay hiện tượng nghẽn $p_{95}$ ở `05_Checkout` và `06_CancelOrder`. |
-| **2** | **Thêm Database Index cho trường tra cứu (`orders.user_id`)** | ✅ **Khả thi (Feasible)** | **Rất khả thi.** Hiện tại `SELECT * FROM orders WHERE user_id = ?` đang quét toàn bảng (Full Table Scan). Đánh index `CREATE INDEX idx_orders_user ON orders(user_id)` sẽ giảm thời gian tìm đơn hàng ở `03_GetMyOrders` và `06_CancelOrder` về gần $0\text{ ms}$. |
-| **3** | **Cài đặt cụm Kubernetes Cluster phân tán và Auto-scaling Pods** | ❌ **Ảo tưởng (Hallucinated)** | **Bất khả thi & Phi thực tế.** SUT EShop là ứng dụng Monolith Node.js sử dụng 1 file SQLite cục bộ (`database.sqlite`). Scale ra nhiều Pods trên Kubernetes sẽ không thể share chung file SQLite mà không làm hỏng dữ liệu (Database Corruption), và chi phí hạ tầng quá mức dư thừa. |
-| **4** | **Dùng hàm `db.useConnectionPool()` và tích hợp Apache Kafka** | ❌ **Ảo tưởng (Hallucinated)** | **Bịa đặt API (Hallucinated).** Thư viện `sqlite3` trong Node.js không hề có hàm `useConnectionPool()` vì SQLite là embedded file engine. Dùng Kafka Event-Driven là giải pháp quá đà (Over-engineering), không thể áp dụng trực tiếp lên source code hiện tại. |
-| **5** | **Áp dụng Cache in-memory (Node-cache / Redis) cho Catalog sản phẩm** | ✅ **Khả thi (Feasible)** | **Khả thi.** Dữ liệu sản phẩm rất ít biến động. Cache lại `GET /api/products` trong RAM 60s sẽ giảm tải đọc cho database, giải phóng tài nguyên cho các transaction checkout. |
+| **1** | **Thêm Database Index cho trường tra cứu (`orders.user_id`, `orders.id`)** | **Khả thi (Feasible)** | **Rất khả thi.** Tại `backend/database.js` (dòng 74), bảng `orders` không hề có index trên `user_id`. Do đó câu truy vấn `SELECT * FROM orders WHERE user_id = ?` trong `server.js` (dòng 313) đang quét toàn bảng (Full Table Scan). Đánh index `CREATE INDEX idx_orders_user ON orders(user_id)` sẽ giảm thời gian truy vấn ở `03_GetMyOrders` về gần $0\text{ ms}$. |
+| **2** | **Bật chế độ SQLite WAL (Write-Ahead Logging) & Tăng Busy Timeout** | **Khả thi (Feasible)** *(Sinh viên bổ sung phản biện)* | **Giải pháp tối ưu nhất cho SUT.** Thêm lệnh `db.run("PRAGMA journal_mode = WAL;");` trong `database.js` cho phép đọc và ghi song song, loại bỏ hiện tượng khóa độc quyền file CSDL dưới tải 150 VUs mà không cần thay đổi kiến trúc. |
+| **3** | **Sử dụng In-memory Cache cho API Đọc Catalog (`GET /api/products`)** | **Khả thi (Feasible)** | **Khả thi.** Dữ liệu danh mục sản phẩm ít thay đổi (`products` table). Cache lại trong RAM Node.js 60 giây sẽ giảm tải đọc cho CSDL, giải phóng tài nguyên cho các transaction ghi. |
+| **4** | **Tối ưu Transaction Scope `BEGIN ... COMMIT`** | **Ảo tưởng (Hallucinated)** | **Không tồn tại trong mã nguồn.** Trong `server.js`, các endpoint chỉ chạy 1 câu `db.run()` đơn lẻ, không có khối `BEGIN TRANSACTION` đa bước hay cập nhật kho hàng `inventory`. Đề xuất này là suy diễn bịa đặt của AI. |
+| **5** | **Chuyển sang cụm PostgreSQL + Message Queue + Background Workers** | **Bất khả thi / Quá đà (Over-engineering)** | **Phi thực tế cho prototype.** Việc đập đi xây lại toàn bộ kiến trúc CSDL và bổ sung Message Queue/Workers là quá đà, làm tăng chi phí vận hành và bảo trì hạ tầng mà không cần thiết đối với quy mô của bài kiểm thử. |
+| **6** | **Cache danh sách đơn hàng động `orders:user:<userId>`** | **Không khuyến khích (High Risk)** | **Rủi ro Dirty Data cao.** Các thao tác Checkout và Cancel Order diễn ra liên tục khiến việc cache dữ liệu động này dễ gây sai lệch trạng thái đơn hàng nếu không có cơ chế invalidate phức tạp. |
 
 ---
 
@@ -160,4 +189,5 @@ Dữ liệu thô thực tế được trích xuất từ 3 file log `.jtl` trong
 - **File Log thô (.jtl):** `test-results/load_results.jtl`, `test-results/stress_results.jtl`, `test-results/spike_results.jtl`
 - **HTML Report Dashboards:** `test-results/load_html_report/`, `test-results/stress_html_report/`, `test-results/spike_html_report/`
 - **Nhật ký AI:** `ai_templates/ai_audit_report.md`
+- **Phản biện AI:** `reports/AI_Critique.md`
 - **Bằng chứng phần cứng:** `evidence/hardware_dxdiag.png`
