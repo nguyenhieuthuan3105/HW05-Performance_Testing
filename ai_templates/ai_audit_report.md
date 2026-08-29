@@ -577,13 +577,181 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
   2 sơ đồ này không xem được ở dạng preview, tôi có nên copy lên mermaid.live, xuất png rồi cho vào folder evidence không?
   ```
 
+### Promt 9:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 21:10 28/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  ok, hãy kiểm tra lại tiến độ của toàn bộ project nhé, xem tôi còn cần phải làm những gì nữa để thỏa các yêu cầu @[help/2026.HW05.Performance Testing_En.pdf]
+  ```
+
 - **Kết quả phản hồi của AI (Output):**
   ```text
-  1. Đánh giá tính cần thiết:
-     - Rất nên và khuyến khích xuất PNG cho 2 sơ đồ Mermaid lên mermaid.live để lưu vào evidence/flow2_workflow.png và evidence/continuous_perf_pipeline.png.
-     - Giúp đảm bảo 100% khi render tài liệu Markdown hoặc xuất PDF (Main_Report.pdf), các sơ đồ sẽ luôn hiển thị sắc nét, chuyên nghiệp và không phụ thuộc vào plugin Mermaid của người xem.
-  2. Hướng dẫn cú pháp nhúng ảnh trực tiếp vào reports/Main_Report.md kết hợp song song cả khối code Mermaid và link ảnh minh họa.
+  1. Rà soát tổng thể toàn diện trạng thái dự án HW05:
+     - Hoàn thành xuất sắc 100% nội dung học thuật:
+       + Task 1 (60đ): 3 kịch bản .jmx, test-data.csv 6 users, chạy test sinh raw log .jtl và 3 thư mục HTML Report, hardware_dxdiag.png.
+       + Task 2 (10đ): Phân tích chi tiết 3 file .jtl, Săn lỗi AI Misinterpretation Hunt đối chiếu source code server.js/database.js, Bảng Feasible vs Hallucinated.
+       + Task 3 (10đ): Đề xuất Continuous Performance Testing CI/CD Quality Gate p95, nhúng trực tiếp 2 sơ đồ ảnh PNG sắc nét (script_flow.png, continuous_performance_testing_diagram.png), phân tích Trade-offs sâu sắc.
+       + Báo cáo kỹ thuật: reports/Main_Report.md (100% hoàn chỉnh) và reports/AI_Critique.md.
+     - Các hạng mục còn lại cần hoàn thiện để đóng gói nộp bài:
+       + Xây dựng Agent Skill tự động hóa Python (agent-skill/perf_analyzer.py + README.md).
+       + Tạo file README.md gốc (Bảng tự chấm điểm Self-Assessment 100/100) và xuất reports/git_commit_log.txt.
+       + Chụp ảnh Task Manager Resource Monitor và quay Video Demo (>= 6 phút) thuyết minh tiếng Việt.
   ```
+
+## Xây dựng Agent Skill Tự động hóa (Agent Skills)
+
+### Promt 1:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 21:19 28/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  có nhất thiết phải là python skill không? bình thường tôi hay tạo các skill.md, các hàm js hoặc ts chỉ để phục vụ flow thôi
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Giải thích về chuẩn định nghĩa Agent Skill:
+     - Hoàn toàn KHÔNG bắt buộc phải dùng Python.
+     - Trong chuẩn thiết kế Agent Skill (Antigravity Customization System), cốt lõi là file hướng dẫn SKILL.md (chứa YAML frontmatter và workflow prompt) kết hợp với các helper scripts/tools có thể viết bằng JavaScript/Node.js (.js), TypeScript (.ts) hoặc PowerShell.
+### Promt 2:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 13:51 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  trước khi bắt đầu phần agent skill, tôi cần nắm rõ toàn bộ những mục mình đã làm trước đã, hay tổng hợp cho tôi nhé, đồng thời cho tôi biết luôn là video của mình sẽ cần quay gì, giới thiệu những gì, ra sao @[help/2026.HW05.Performance Testing_En.pdf]
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Tổng hợp toàn diện các thành quả kỹ thuật đã hoàn thành:
+     - Task 1: Flow 2 E2E, CSV 6 tài khoản, 3 kịch bản .jmx có Listeners riêng, debug lỗi 401 & IllegalArgumentException, sinh đủ raw log .jtl và 3 HTML reports, hardware_dxdiag.png.
+     - Task 2: Trích xuất số liệu 3 bài test, Săn 3 lỗi AI (Tail latency p95, SQLite Write Lock vs CPU, Throughput Think Time), Bảng phản biện 6 giải pháp đối chiếu server.js (L297-342) và database.js (L1-11, L74).
+     - Task 3: Mô hình Continuous Performance Testing CI/CD GitHub Actions, Quality Gate p95 > 15%, 2 sơ đồ luồng Mermaid & ảnh PNG, Phân tích 2 bài toán Trade-offs.
+     - Báo cáo hoàn chỉnh: reports/Main_Report.md (100%), reports/AI_Critique.md (100%), ai_templates/ai_audit_report.md.
+  2. Hướng dẫn chi tiết kịch bản quay Video Demo theo chuẩn đề bài PDF (Mục 7 trang 5):
+     - Thời lượng >= 6 phút, thuyết minh tiếng Việt giọng thật của sinh viên.
+     - Bố cục chia đôi khung hình: Bên trái chạy JMeter/CLI, Bên phải mở Task Manager (tab Performance CPU/RAM).
+### Promt 3:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 13:59 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  tôi vẫn chưa thấy có log bug gì thì phải, điều này là do hệ thống xử lý ok hay do ta đã bắt sót, hay chỉ đơn giản là ta chưa làm? hãy đọc lại toàn bộ các file báo cáo và rà soát thử xem có lỗi gì không nhé, kiểm tra trong folder test_results/
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Giải thích nguyên nhân Error = 0% trong test_results/:
+     - Về tính khả dụng (Availability): Bộ dữ liệu test-data.csv được cấu hình chuẩn xác (6 users hợp lệ, token Bearer đầy đủ) nên server Node.js không ném mã lỗi HTTP 500 hay 401 khi chạy luồng Happy Path.
+     - Về hiệu năng (Performance): Hệ thống không bị crash sập nguồn nhưng bộc lộ suy thoái hiệu năng nghiêm trọng (Performance Degradation) ở Stress Test khi p95 vọt lên 785ms và CancelOrder vọt lên 1200ms do nghẽn khóa ghi SQLite.
+  2. Rà soát và tổng hợp 4 lỗi (Bugs & Performance Defects) thực tế của SUT:
+     - Bug 1 (Performance Defect): SQLite Write Lock Contention làm nghẽn p95 lên 1.2s ở bước CancelOrder.
+     - Bug 2 (Performance Defect): Quét toàn bảng (Full Table Scan) do thiếu Index trên orders.user_id.
+     - Bug 3 (Logic Defect): Hàm apply-coupon tính sai công thức giảm giá phần trăm total_amount * (1 - discount_value) khiến số tiền bị nhân gấp 10 lần.
+### Promt 4:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 14:04 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  tôi chỉ cần trình bày lỗi thực tế phát hiện được khi chạy bộ test mà ta tạo ra để kiểm tra, hãy tạo 1 file bug_report.md với cấu trúc mẫu ... sau đó log các bug vào, lưu ý không được sử dụng kết quả quét db. Và làm luôn 1 bản md để tôi log lên github issue theo đúng các bug đã báo cáo.
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Khởi tạo file reports/bug_report.md chuẩn cấu trúc theo yêu cầu:
+     - Ghi nhận 3 lỗi và suy thoái hiệu năng thực tế phát hiện trực tiếp qua kịch bản kiểm thử Performance Testing:
+       + Bug 1: Suy thoái hiệu năng nghiêm trọng (p95 = 1200.60ms, Max = 1617ms) tại API PUT /api/orders/:id/cancel dưới tải Stress Test 150 VUs (Issue #1).
+       + Bug 2: Lỗi logic tính sai số tiền giảm giá âm và đội giá đơn hàng gấp 10 lần tại POST /api/apply-coupon (Issue #2).
+       + Bug 3: Hiện tượng phân phối đuôi độ trễ kéo dài p99 > 1.15s do tích tụ hàng đợi tranh chấp tài nguyên dưới tải kéo dài (Issue #3).
+  2. Tạo 3 file Markdown mẫu chi tiết trong evidence/github_issues/:
+     - evidence/github_issues/issue_01_cancel_order_latency.md
+     - evidence/github_issues/issue_02_coupon_calculation_bug.md
+### Promt 5:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 14:07 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  tôi có thể chụp các ảnh minh chứng cho các bug này ở đâu?
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Hướng dẫn chi tiết các vị trí chụp ảnh minh chứng cho 3 Bug:
+     - Bug 1 (CancelOrder Latency Spike): Mở JMeter nạp file test-results/stress_results.jtl vào Aggregate Report (khoanh đỏ dòng 06_CancelOrder p95 = 1200ms, Max = 1617ms) HOẶC mở file test-results/stress_html_report/index.html chụp bảng Statistics.
+     - Bug 2 (Coupon Calculation Bug): Mở JMeter View Results Tree tại sampler 04_Transactional_ApplyCoupon (Response Data hiển thị discount_amount = -270,000,000 và final_amount = 300,000,000) HOẶC test trực tiếp qua Postman/Browser.
+     - Bug 3 (Stress Tail Latency Skewness): Mở test-results/stress_html_report/index.html chọn menu Charts -> Response Times Percentiles (chụp biểu đồ đường cong vọt lên từ p90 553ms đến p99 1157ms).
+### Promt 6:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 14:19 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  khi tôi mở lên bằng jmeter thì không thấy có hiển thị thông số gì cả, khi tôi bấm vào chạy thử file load thì nó bắt đầu xuất hiện khá nhiều lỗi chạy không được, vấn đề ở đây là gì?
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Giải thích hiện tượng giao diện JMeter trống khi vừa mở:
+     - File kịch bản .jmx chỉ lưu cấu trúc Test Plan chứ không lưu dữ liệu kết quả thực thi trong file.
+     - Hướng dẫn cách nạp dữ liệu cũ vào Listener (Summary Report, Aggregate Report, View Results Tree): Bấm nút Browse... tại ô Filename và chọn file log tương ứng (load_results.jtl, stress_results.jtl, spike_results.jtl) để hiển thị đầy đủ bảng số liệu và cây kết quả.
+  2. Truy tìm và khắc phục nguyên nhân gây lỗi khi bấm Start chạy test:
+     - Nguyên nhân: Backend SUT sau khi restart CSDL SQLite chỉ có sẵn tài khoản gốc test@eshop.com, thiếu 5 tài khoản test-data (user1@eshop.com -> user5@eshop.com) khiến 5/6 luồng bị lỗi 401 Unauthorized khi Login, làm gãy toàn bộ chuỗi token trích xuất phía sau.
+     - Đã chạy script tự động đăng ký thành công toàn bộ 5 tài khoản còn lại vào CSDL SUT http://localhost:3000. Kiểm tra xác thực 100% cả 6 tài khoản đều đăng nhập thành công.
+  ```
+
+### Promt 7:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 14:26 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  khoan đã, tức là script chạy để nạp các user vào backend là hoàn toàn độc lập so với script mà ta thực hiện cho 3 bài test á? không phải là mỗi bai test khi thực hiện việc đầu tiên là quét file data, setup các mock user, đăng nhập ,... sau khi kết thúc thì xóa các user đi hả?
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Phân biệt bản chất giữa Functional Automation Testing (HW04) và Performance Testing (HW05):
+     - Trong Performance Testing: Thread Group chính được thiết kế để đo đạc thuần túy độ trễ và thông lượng của nghiệp vụ người dùng thực tế (Flow 2: Login -> Search -> Orders -> Coupon -> Checkout -> Cancel).
+     - Nếu đưa bước Register/Xóa user vào vòng lặp tải chính của 150 VUs sẽ làm méo mó kết quả đo đạc thời gian phản hồi và gây lỗi Email already exists ở các vòng lặp tiếp theo.
+  2. Hai mô hình chuẩn mực trong Performance Testing:
+     - Mô hình 1 (Pre-test Data Provisioning / Seeding): Chạy script seed data trước khi nạp tải (chuẩn CI/CD thực tế).
+     - Mô hình 2 (Self-contained setUp Thread Group): Tích hợp setUp Thread Group (chạy 1 lần duy nhất trước khi nạp tải) vào trực tiếp trong file .jmx của JMeter để tự động nạp user nếu chưa có.
+### Promt 8:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 14:29 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  nhưng khi tôi muốn quay video thì sẽ phải reset server và chạy lại, khi đó bộ dữ liệu sẽ bị erase và phải add lại dữ liệu từ đầu?
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Giữ nguyên tính toàn vẹn tuyệt đối của mã nguồn SUT (Black-box Testing):
+     - Không chỉnh sửa file gốc của hệ thống backend.
+  2. Tạo script tự động nạp dữ liệu độc lập scripts/seed_users.js trong repository HW05:
+     - Tự động gọi API POST /api/register nạp 5 tài khoản test-data chỉ trong 0.1 giây trước khi chạy kiểm thử.
+     - Xử lý an toàn nếu tài khoản đã tồn tại (Idempotent execution).
+  3. Hướng dẫn quy trình 3 bước siêu nhanh khi quay Video Demo: Bật backend -> Chạy node scripts/seed_users.js -> Mở JMeter chạy test.
+  ```
+
+
 
 
 
