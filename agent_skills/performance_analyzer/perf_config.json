@@ -1,0 +1,23 @@
+{
+  "target": {
+    "serverUrl": "http://localhost:3000",
+    "healthcheckEndpoint": "/api/products"
+  },
+  "setup": {
+    "autoSeed": true,
+    "seedScript": "scripts/seed_users.js"
+  },
+  "testExecution": {
+    "testPlan": "test-plans/23127125_Load_20260828.jmx",
+    "outputJtl": "test-results/skill_run_results.jtl"
+  },
+  "qualityGate": {
+    "baselineFile": "agent_skills/performance_analyzer/perf_baseline.json",
+    "slaMaxP95Ms": 500,
+    "slaMaxErrorPercent": 1.0,
+    "maxP95RegressionPercent": 15.0
+  },
+  "reporting": {
+    "markdownReport": "reports/perf_summary_report.md"
+  }
+}

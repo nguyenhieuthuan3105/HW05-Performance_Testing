@@ -747,11 +747,124 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
      - Không chỉnh sửa file gốc của hệ thống backend.
   2. Tạo script tự động nạp dữ liệu độc lập scripts/seed_users.js trong repository HW05:
      - Tự động gọi API POST /api/register nạp 5 tài khoản test-data chỉ trong 0.1 giây trước khi chạy kiểm thử.
-     - Xử lý an toàn nếu tài khoản đã tồn tại (Idempotent execution).
-  3. Hướng dẫn quy trình 3 bước siêu nhanh khi quay Video Demo: Bật backend -> Chạy node scripts/seed_users.js -> Mở JMeter chạy test.
   ```
 
+### Promt 9:
 
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 14:51 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  đầu tiên tôi cần nắm được đầu vào và đầu ra của skill là gì, cũng như là skill cần phải thực hiện những gì theo@[help/2026.HW05.Performance Testing_En.pdf]
+  ```
+
+### Promt 10:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 15:09 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  "Agent Skill: You are encouraged to build an Agent Skill that applies this performance-testing and log-analysis workflow..." tức là skill này sẽ là nhận vào file kết quả test, sau đó phân tích và đánh giá, chứ không phải là tạo ra 1 bộ testcript?
+  ```
+
+### Promt 11:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 15:13 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  tức là đầu vào khi này sẽ là các file jmx? hay là bắt đầu từ việc tạo các file jmx?
+  ```
+
+### Promt 12:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 15:16 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  "skill của t là t cho nó làm từ tạo ra test plan rồi tự chạy rồi analyze log rồi suggest này kia luôn" tôi có thử hỏi thì bạn tôi trả lời như này, tức là bắt đầu từ đâu, thực hiện các việc gì?
+  ```
+
+### Promt 13:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 15:18 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  chiếu theo yêu cầu agent skill của đề thì cần làm những gì @[help/2026.HW05.Performance Testing_En.pdf]
+  ```
+
+### Promt 14:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 15:26 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  có cần thêm 1 file input value cho người dùng nhập vào các thông tin cần tinh chỉnh cho ai agent thực hiện, ví dụ kêt nối với server ở link..., chạy file seed ... rồi mới chạy jmx..., nhập các input cần thiết...
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Đánh giá tính cần thiết và ưu việt của File Cấu hình Đầu vào (Declarative Configuration File):
+     - Rất nên có. Việc sử dụng file cấu hình perf_config.json giúp tách bạch hoàn toàn phần Cấu hình tham số (Configuration) khỏi Mã nguồn thực thi (Code), chuẩn hóa quy trình CI/CD và giúp người dùng dễ dàng tái sử dụng trên bất kỳ hệ thống SUT nào.
+  2. Thiết kế cấu trúc file perf_config.json:
+     - target: URL máy chủ SUT (http://localhost:3000) & Healthcheck endpoint.
+     - setup: Đường dẫn script seed dữ liệu (scripts/seed_users.js).
+     - testExecution: Kịch bản .jmx muốn chạy, đường dẫn file raw log xuất ra.
+     - qualityGate: File mốc so sánh (perf_baseline.json), ngưỡng SLA p95 (500ms), ngưỡng Error Rate (1.0%), ngưỡng suy thoái Delta p95 (15%).
+### Promt 15:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 15:28 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  hãy thực hiện các file của phần agent skill như ta đã phân tích nhé
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Triển khai hoàn chỉnh toàn bộ bộ mã nguồn và tài liệu Agent Skill:
+     - agent_skills/performance_analyzer/perf_config.json: File cấu hình đầu vào chuẩn Declarative JSON.
+     - agent_skills/performance_analyzer/perf_baseline.json: Mốc chuẩn benchmark hiệu năng cho 6 endpoint.
+     - agent_skills/performance_analyzer/index.js: Mã nguồn thực thi toàn bộ chu trình 6 bước (Pre-flight healthcheck, Data seeding, JMeter execution, JTL parsing p50-p99, Quality Gate evaluation, Root-cause AI diagnostic & Markdown export).
+     - agent_skills/performance_analyzer/SKILL.md: File định nghĩa Agent Skill theo chuẩn framework.
+     - agent_skills/performance_analyzer/README.md: Hướng dẫn sử dụng và tài liệu CLI Flags chi tiết.
+     - Đồng bộ thư mục dự phòng agent-skill/ đầy đủ 100%.
+### Promt 16:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 15:44 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  perf_baseline.json có cần thiết không? có đáp ứng yêu cầu tái sử dụng không, hay đang hơi cụ thể hóa quá cho bài này? Thêm vào đó skill này đã đủ độ tổng quát chưa? trong src của index.js đã nêu rõ việc sử dụng các tham số do người dùng nhập chưa? cách thông tin hardcode đã hoàn toàn chỉ là fallback chưa?
+  ```
+
+### Promt 17:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 16:04 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  để quay agent skill thì tôi cần làm gì? xóa hết phần test result đi hả?
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Cảnh báo quan trọng: Tuyệt đối KHÔNG xóa 3 file kết quả kiểm thử chính (load_results.jtl, stress_results.jtl, spike_results.jtl và 3 thư mục HTML Report) trong test-results/ vì đây là bằng chứng cốt lõi của Task 1 & Task 2.
+  2. Hướng dẫn các thao tác quay Video Demo Agent Skill trực quan và chuyên nghiệp:
+     - Thao tác 1 (Phân tích Load Test): Chạy node agent_skills/performance_analyzer/index.js --jtl test-results/load_results.jtl -> Giới thiệu bảng số liệu, bách phân vị và kết luận QUALITY GATE PASSED.
+     - Thao tác 2 (Phân tích Stress Test & Regression Detection): Chạy node agent_skills/performance_analyzer/index.js --jtl test-results/stress_results.jtl -> Minh họa phát hiện suy thoái p95 = 785ms (QUALITY GATE FAILED), tự động chẩn đoán lỗi nghẽn khóa ghi SQLite và xuất giải pháp WAL mode.
+     - Thao tác 3 (Tùy chọn End-to-End): Chạy node agent_skills/performance_analyzer/index.js để minh họa toàn bộ pipeline tự động từ Seed Data đến phân tích.
+  ```
 
 
 
