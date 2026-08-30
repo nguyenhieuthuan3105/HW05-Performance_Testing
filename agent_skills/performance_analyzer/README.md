@@ -10,7 +10,7 @@
 `performance_analyzer` là một **Agent Skill toàn vòng đời (Full-Lifecycle Performance Testing Skill)** được thiết kế để tự động hóa hoàn toàn quy trình kiểm thử hiệu năng, phân tích dữ liệu thô và chặn cổng chất lượng (Quality Gate) trong quy trình CI/CD.
 
 ### 🌟 Các tính năng cốt lõi:
-1. **Khởi tạo dữ liệu tự động (Pre-test Provisioning):** Tự động kiểm tra SUT Server (`http://localhost:3000`) và nạp 6 tài khoản kiểm thử nếu thiếu.
+1. **Khởi tạo dữ liệu tự động (Pre-test Provisioning):** Tự động kiểm tra SUT Server (`http://localhost:3000`) và nạp các tài khoản kiểm thử cần thiết nếu thiếu (Nếu không yêu cầu nạp thì không thực hiện).
 2. **Thực thi kiểm thử tự động (Execution):** Gọi JMeter Non-GUI CLI chạy kịch bản Test Plan (`.jmx`) và thu thập file log `.jtl`.
 3. **Bóc tách log thô & Tính toán bách phân vị:** Parse CSV/JTL theo từng sampler API, tính toán chính xác $Avg, Min, Max, p_{50}, p_{90}, p_{95}, p_{99}$, Throughput (TPS) và Error Rate (%).
 4. **Kiểm tra Quality Gate & Phát hiện Regression:** Đối chiếu với mốc chuẩn `perf_baseline.json`, phát hiện suy thoái hiệu năng khi $\Delta p_{95} > +15\%$, $p_{95} > 500\text{ ms}$, hoặc $\text{Error} > 1.0\%$.

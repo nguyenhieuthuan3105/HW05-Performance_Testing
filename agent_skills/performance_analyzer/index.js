@@ -5,23 +5,13 @@
  * Generic, Reusable, Full-Lifecycle Performance Testing Agent Skill
  * MSSV: 23127125 | Họ và tên: Nguyễn Hiếu Thuận
  * ============================================================================
- * Quy trình thực thi:
- * 1. Đọc và ưu tiên tham số người dùng nhập (CLI Flags > perf_config.json > Fallbacks)
- * 2. Pre-flight check & Tự động nạp dữ liệu kiểm thử (nếu được cấu hình)
- * 3. Thực thi kịch bản JMeter Non-GUI (nếu chỉ định Test Plan)
- * 4. Bóc tách log thô .jtl, tự động gom nhóm động mọi Sampler bất kỳ
- * 5. Tính toán phân vị chính xác: p50, p90, p95, p99, Throughput, Error %
- * 6. Kiểm tra Quality Gate động: Đối chiếu Baseline & SLA
- * 7. Tự động chẩn đoán điểm nghẽn dựa trên mẫu hành vi (Heuristic Diagnostics)
- * 8. Hỗ trợ tự động tạo / cập nhật mốc chuẩn (--init-baseline)
- * 9. Xuất báo cáo Markdown tổng hợp & Trả về Exit Code
- * ============================================================================
  */
 
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 const http = require('http');
+const os = require('os');
 
 // 1. Phân tích CLI Arguments & Trợ giúp (--help)
 function parseArgs() {
@@ -75,7 +65,6 @@ Ví dụ sử dụng:
 
 // 2. Nạp cấu hình theo thứ tự ưu tiên: CLI > Config File > Fallback Defaults
 function loadConfig(options) {
-    // Cấu hình mặc định nền (Fallback Defaults)
     let config = {
         target: { serverUrl: 'http://localhost:3000', healthcheckEndpoint: '/api/products' },
         setup: { autoSeed: true, seedScript: 'scripts/seed_users.js' },
@@ -84,7 +73,6 @@ function loadConfig(options) {
         reporting: { markdownReport: 'reports/perf_summary_report.md' }
     };
 
-    // Đọc file cấu hình perf_config.json nếu tồn tại
     const configPath = options.config 
         ? path.resolve(options.config)
         : path.resolve(__dirname, 'perf_config.json');
@@ -107,7 +95,6 @@ function loadConfig(options) {
         }
     }
 
-    // Ưu tiên cao nhất: Tham số người dùng truyền qua dòng lệnh (CLI Flags Override)
     if (options.jtl) config.testExecution.inputJtl = options.jtl;
     if (options.plan) config.testExecution.testPlan = options.plan;
     if (options.url) config.target.serverUrl = options.url;
@@ -123,7 +110,59 @@ function loadConfig(options) {
     return config;
 }
 
-// 3. Pre-flight Healthcheck
+// 3. Tự động tìm đường dẫn JMeter trên Windows / Linux / macOS
+function findJmeterExecutable() {
+    // 1. Thử lệnh trực tiếp từ PATH
+    try {
+        execSync(process.platform === 'win32' ? 'where jmeter' : 'which jmeter', { stdio: 'ignore' });
+        return 'jmeter';
+    } catch (e) {}
+
+    // 2. Tìm kiếm các thư mục cài đặt JMeter phổ biến trên Windows
+    if (process.platform === 'win32') {
+        const userHome = os.homedir();
+        const candidatePaths = [
+            path.join(userHome, 'Downloads', 'apache-jmeter-5.6.3', 'apache-jmeter-5.6.3', 'bin', 'jmeter.bat'),
+            path.join(userHome, 'Downloads', 'apache-jmeter-5.6.3', 'bin', 'jmeter.bat'),
+            path.join(userHome, 'Downloads', 'apache-jmeter-5.6.2', 'bin', 'jmeter.bat'),
+            path.join(userHome, 'Downloads', 'apache-jmeter-5.6', 'bin', 'jmeter.bat'),
+            'C:\\apache-jmeter-5.6.3\\bin\\jmeter.bat',
+            'C:\\apache-jmeter-5.6.2\\bin\\jmeter.bat',
+            'C:\\apache-jmeter-5.6\\bin\\jmeter.bat',
+            'C:\\apache-jmeter-5.5\\bin\\jmeter.bat',
+            'D:\\apache-jmeter-5.6.3\\bin\\jmeter.bat',
+            'D:\\apache-jmeter-5.6.2\\bin\\jmeter.bat',
+            'D:\\apache-jmeter-5.6\\bin\\jmeter.bat',
+            'D:\\apache-jmeter-5.5\\bin\\jmeter.bat',
+            'C:\\tools\\apache-jmeter-5.6.3\\bin\\jmeter.bat',
+            'C:\\Program Files\\apache-jmeter-5.6.3\\bin\\jmeter.bat'
+        ];
+
+        for (const p of candidatePaths) {
+            if (fs.existsSync(p)) return `"${p}"`;
+        }
+
+        // Quét ổ C:\, D:\ và Downloads cho thư mục apache-jmeter*
+        const searchDirs = ['C:\\', 'D:\\', path.join(userHome, 'Downloads')];
+        for (const sDir of searchDirs) {
+            if (fs.existsSync(sDir)) {
+                try {
+                    const dirs = fs.readdirSync(sDir).filter(d => d.toLowerCase().startsWith('apache-jmeter'));
+                    for (const d of dirs) {
+                        const directBat = path.join(sDir, d, 'bin', 'jmeter.bat');
+                        const nestedBat = path.join(sDir, d, d, 'bin', 'jmeter.bat');
+                        if (fs.existsSync(directBat)) return `"${directBat}"`;
+                        if (fs.existsSync(nestedBat)) return `"${nestedBat}"`;
+                    }
+                } catch (e) {}
+            }
+        }
+    }
+
+    return 'jmeter';
+}
+
+// 4. Pre-flight Healthcheck
 async function checkHealth(url, endpoint) {
     return new Promise((resolve) => {
         try {
@@ -146,7 +185,7 @@ async function checkHealth(url, endpoint) {
     });
 }
 
-// 4. Parse file JTL / CSV tổng quát (Dynamic Sampler Discovery)
+// 5. Parse file JTL / CSV
 function parseJtl(filePath) {
     if (!fs.existsSync(filePath)) {
         throw new Error(`File log kết quả không tồn tại: ${filePath}`);
@@ -210,7 +249,7 @@ function parseJtl(filePath) {
     return { samplers, durationSec };
 }
 
-// 5. Tính toán bách phân vị và thống kê tổng quát
+// 6. Tính toán bách phân vị và thống kê
 function calculateMetrics(samplers, durationSec) {
     const stats = {};
     let allSamples = [];
@@ -272,12 +311,11 @@ function calculateMetrics(samplers, durationSec) {
     return { samplers: stats, overall };
 }
 
-// 6. Quality Gate: So sánh Baseline linh hoạt & Kiểm tra SLA
+// 7. Quality Gate: So sánh Baseline & Kiểm tra SLA
 function evaluateQualityGate(metrics, config) {
     let baseline = null;
     const baselinePath = config.qualityGate.baselineFile;
 
-    // Tự động khởi tạo baseline nếu được yêu cầu
     if (config.qualityGate.initBaseline) {
         const newBaseline = {
             generatedAt: new Date().toISOString(),
@@ -373,11 +411,11 @@ function evaluateQualityGate(metrics, config) {
     return { isPassed, checks, baseline, deltaP95 };
 }
 
-// 7. Chẩn đoán nguyên nhân gốc Tổng quát (Heuristic Pattern Diagnostics)
+// 8. Chẩn đoán nguyên nhân gốc Tổng quát (Heuristic AI Diagnostics)
 function generateAiDiagnostics(metrics) {
     const suggestions = [];
 
-    // Heuristic 1: Phát hiện các Sampler Ghi (Transactional / Write) bị nghẽn độ trễ
+    // Heuristic 1: Phát hiện Sampler Ghi bị nghẽn
     const writeKeywords = ['cancel', 'checkout', 'create', 'order', 'insert', 'update', 'write', 'post', 'put', 'delete', 'buy', 'pay'];
     const slowWriteSamplers = Object.values(metrics.samplers).filter(s => {
         const lower = s.label.toLowerCase();
@@ -397,7 +435,7 @@ function generateAiDiagnostics(metrics) {
         });
     }
 
-    // Heuristic 2: Phát hiện các Sampler Đọc (Read / Query) bị chậm do quét toàn bảng
+    // Heuristic 2: Phát hiện Sampler Đọc bị quét toàn bảng
     const readKeywords = ['get', 'read', 'find', 'list', 'search', 'query', 'my-orders', 'history', 'filter'];
     const slowReadSamplers = Object.values(metrics.samplers).filter(s => {
         const lower = s.label.toLowerCase();
@@ -417,7 +455,7 @@ function generateAiDiagnostics(metrics) {
         });
     }
 
-    // Heuristic 3: Phát hiện lệch đuôi phân phối độ trễ toàn hệ thống (Tail Latency Skewness)
+    // Heuristic 3: Lệch đuôi độ trễ toàn hệ thống
     if (metrics.overall.p99 > 3 * metrics.overall.p50 && metrics.overall.p99 > 300) {
         suggestions.push({
             type: 'TAIL_LATENCY_SKEW',
@@ -432,7 +470,7 @@ function generateAiDiagnostics(metrics) {
     return suggestions;
 }
 
-// 8. Xuất file Báo cáo Markdown tổng hợp
+// 9. Xuất file Báo cáo Markdown
 function exportMarkdownReport(metrics, qg, suggestions, outputPath) {
     let md = `# Performance Test Analysis & Quality Gate Summary\n\n`;
     md += `**Thời gian thực thi:** ${new Date().toLocaleString('vi-VN')}  \n`;
@@ -476,7 +514,7 @@ function exportMarkdownReport(metrics, qg, suggestions, outputPath) {
     console.log(`📄 [EXPORT] Đã xuất báo cáo chi tiết ra: ${resolvedPath}`);
 }
 
-// 9. Main Workflow
+// 10. Main Workflow
 async function main() {
     const options = parseArgs();
 
@@ -522,18 +560,38 @@ async function main() {
             process.exit(1);
         }
 
+        // Tự động đảm bảo file test-data.csv có mặt ở thư mục hiện tại khi chạy JMeter
+        const csvInPlan = path.resolve(path.dirname(jmxPath), 'test-data.csv');
+        const csvInCwd = path.resolve('test-data.csv');
+        let autoCopiedCsv = false;
+        if (fs.existsSync(csvInPlan) && !fs.existsSync(csvInCwd)) {
+            try {
+                fs.copyFileSync(csvInPlan, csvInCwd);
+                autoCopiedCsv = true;
+            } catch (e) {}
+        }
+
         if (fs.existsSync(targetJtl)) fs.unlinkSync(targetJtl);
 
-        const jmeterCmd = `jmeter -n -t "${jmxPath}" -l "${targetJtl}"`;
+        const jmeterExec = findJmeterExecutable();
+        const logPath = path.resolve(path.dirname(targetJtl), 'jmeter.log');
+        const jmeterCmd = `${jmeterExec} -n -t "${jmxPath}" -l "${targetJtl}" -j "${logPath}"`;
         console.log(`⚡ Executing CLI: ${jmeterCmd}`);
         try {
             execSync(jmeterCmd, { stdio: 'inherit' });
             console.log(`✅ [OK] Kiểm thử hoàn tất! Dữ liệu đã lưu tại: ${targetJtl}\n`);
         } catch (e) {
-            console.warn(`⚠️ [WARN] Không thể gọi trực tiếp lệnh 'jmeter' từ PATH.`);
+            console.warn(`⚠️ [WARN] Lỗi khi gọi JMeter CLI: ${e.message}`);
             if (!fs.existsSync(targetJtl)) {
-                console.error(`❌ [ERROR] Không tìm thấy dữ liệu JTL để phân tích. Hãy truyền file log qua cờ --jtl <path>.`);
+                console.error(`❌ [ERROR] Không tìm thấy dữ liệu JTL để phân tích.`);
                 process.exit(1);
+            }
+        } finally {
+            // Tự động dọn dẹp file test-data.csv tạm ở thư mục gốc để giữ thư mục luôn sạch sẽ
+            if (autoCopiedCsv && fs.existsSync(csvInCwd)) {
+                try {
+                    fs.unlinkSync(csvInCwd);
+                } catch (e) {}
             }
         }
     } else {

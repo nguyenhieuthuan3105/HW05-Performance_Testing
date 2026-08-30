@@ -862,9 +862,177 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
   1. Cảnh báo quan trọng: Tuyệt đối KHÔNG xóa 3 file kết quả kiểm thử chính (load_results.jtl, stress_results.jtl, spike_results.jtl và 3 thư mục HTML Report) trong test-results/ vì đây là bằng chứng cốt lõi của Task 1 & Task 2.
   2. Hướng dẫn các thao tác quay Video Demo Agent Skill trực quan và chuyên nghiệp:
      - Thao tác 1 (Phân tích Load Test): Chạy node agent_skills/performance_analyzer/index.js --jtl test-results/load_results.jtl -> Giới thiệu bảng số liệu, bách phân vị và kết luận QUALITY GATE PASSED.
-     - Thao tác 2 (Phân tích Stress Test & Regression Detection): Chạy node agent_skills/performance_analyzer/index.js --jtl test-results/stress_results.jtl -> Minh họa phát hiện suy thoái p95 = 785ms (QUALITY GATE FAILED), tự động chẩn đoán lỗi nghẽn khóa ghi SQLite và xuất giải pháp WAL mode.
-     - Thao tác 3 (Tùy chọn End-to-End): Chạy node agent_skills/performance_analyzer/index.js để minh họa toàn bộ pipeline tự động từ Seed Data đến phân tích.
+### Promt 18:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 19:41 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  nếu tôi muốn tách ra 1 folder clean thì cần mang theo những gì để có thể chạy được skill này để demo. Tôi sẽ tạo 1 folder test_hw05 rồi copy các file cần thiết sang để chạy thử trước, rồi sau đó mới quay demo
   ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Hướng dẫn danh sách các file & thư mục tối thiểu cần mang theo để tạo môi trường clean test_hw05:
+     - Gói tối thiểu để Demo Phân tích Log (.jtl):
+       + agent_skills/performance_analyzer/ (index.js, perf_baseline.json, perf_config.json, README.md, SKILL.md)
+       + test-results/ (load_results.jtl, stress_results.jtl)
+     - Gói đầy đủ để Demo End-to-End Pipeline (Tự chạy test):
+       + Thêm scripts/seed_users.js
+       + Thêm test-plans/ (23127125_Load_20260828.jmx, test-data.csv)
+       + Thư mục reports/ (để lưu báo cáo xuất ra)
+  2. Cung cấp câu lệnh PowerShell 1 dòng để copy toàn bộ sang folder test_hw05 và lệnh chạy thử nghiệm.
+  ```
+
+### Promt 19:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 19:42 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  tôi không lấy các file jlt sang thì có được không?
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+### Promt 20:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 19:54 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  cho toi lenh de tu tao folder va copy sang nhe
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+### Promt 21:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 20:01 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  thay vi goi lenh kieu nay, toi muon 1 cau lenh kich hoat hon, a ma toi co can dien them cac thong tin gi vao cac file khong? (Y toi la cho toi 1 cau promt de goi bang AI chat thong thuong thoi)
+  ```
+
+### Promt 22:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 20:14 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  toi vua chay thu xong,ban dau AI phai thuc hien cac lenh di tim xem jmeter o dau (toi phai accept lien tuc de cap quyen cho ai), sau do ai yeu cau copy file test data ra ngoai (?) nhu trong anh. Ngoai ra day la du lieu tra ve tu file report: 894 samples, 15.47 req/s, 0.00% error, p95 13.00ms, Delta p95 +8.33%, PASSED
+  ```
+
+### Promt 23:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 20:23 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  toi moi chay thu lan 2, no chinh sua 1 chut o file index nhu sau (bo sung tim kiem trong Downloads, os.homedir va thu muc long nhau apache-jmeter-5.6.3\apache-jmeter-5.6.3\bin\jmeter.bat)
+  ```
+
+### Promt 24:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 20:25 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  va tai sao no lai copy 1 file data.csv ra ngoai, cung nhu de luon file jmeter.log ra ngoai luon (ra ngoai folder test_results)
+  ```
+
+### Promt 25:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 20:32 29/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  Kết quả trả về khi AI chạy kịch bản: 886 requests, Throughput 15.18 req/s, 0.00% error, p95 = 50ms, Delta p95 = +316.67% (FAILED - Quality Gate Regression chặn merge do Write Lock Contention trên Checkout & CancelOrder). Và hỏi tại sao test-data.csv vẫn bị đẩy ra ngoài.
+  ```
+
+### Promt 26:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 14:14 30/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  Xác nhận yêu cầu quay video demo và chụp ảnh minh chứng tài nguyên: Có phải chạy với màn hình chia đôi (JMeter bên trái, Task Manager bên phải) như trong ảnh đính kèm không?
+  ```
+
+### Promt 27:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 14:17 30/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  lệnh gì để seed data nhỉ, tôi quên rồi
+  ```
+
+### Promt 28:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 14:23 30/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  2 file package.json và run_perf_skill.bat là gì, có cần thiết không? Nếu không thì tôi xóa.
+  ```
+
+### Promt 29:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 14:26 30/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  khi quay video demo, tôi cần phải nói những gì, chạy những lệnh nào?
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Cung cấp Kịch bản Thuyết minh Video Demo chi tiết 6 phần (thời lượng khuyến nghị 6 - 8 phút, đạt chuẩn >= 6 phút của đề bài):
+### Promt 30:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 14:30 30/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  Làm rõ 2 video riêng biệt (Video Task 1 chính vs Video Demo Agent Skill) và xác nhận số lượng sampler trong test-plans. Cho tôi kịch bản chi tiết cho Video Task 1 chạy bằng Terminal và mở báo cáo HTML Report Dashboard.
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Phân định rõ 2 video riêng biệt theo quy định đề bài:
+     - Video 1 (Task 1 & 2 - Bắt buộc >= 6 phút): Thuyết minh chạy 3 bài test (Load, Stress, Spike), giám sát Task Manager trên cùng khung hình, đọc chỉ số báo cáo HTML Dashboard.
+     - Video 2 (Agent Skill - Mục 7 đề bài): Demo ngắn gọn cách sử dụng Skill end-to-end trên endpoint group.
+  2. Xác nhận cấu trúc 6 Sampler của Workflow 2 trong cả 3 file .jmx (Auth_Login, SearchProducts, GetMyOrders, ApplyCoupon, Checkout, CancelOrder).
+  3. Cung cấp câu lệnh CLI chạy JMeter Non-GUI và kịch bản thuyết minh chi tiết từng bước cho Video Task 1 đọc qua Dashboard HTML Report.
+  ```
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
