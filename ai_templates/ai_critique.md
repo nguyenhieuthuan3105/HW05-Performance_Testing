@@ -1,0 +1,11 @@
+# AI CRITIQUE
+
+```text
+Sau khi sử dụng Gemini 3.7 Flash (High) và Antigravity IDE trong quá trình thực hiện bài tập HW05 – Performance Testing trên hệ thống EShop, tôi nhận thấy rằng việc áp dụng AI mang lại hiệu suất rất cao ở các tác vụ khởi tạo khung kịch bản kiểm thử JMeter XML (.jmx), thiết lập tham số hóa dữ liệu Data-Driven qua CSV và đóng gói chu trình kiểm thử thành Agent Skill tự động hóa, nhưng cũng bộc lộ nhiều hạn chế và khiếm khuyết kỹ thuật nghiêm trọng đòi hỏi sự can thiệp, kiểm duyệt và phản biện chặt chẽ từ con người.
+
+Điểm mạnh nổi bật của AI là khả năng sinh nhanh cấu trúc XML phức tạp cho 3 kịch bản Load, Stress, Spike bao phủ đủ 3 nhóm chức năng (Auth, Read, Transactional), hỗ trợ tính toán các tham số tải giả định (VUs, Ramp-up, Think Time Gaussian) và tự động hóa trích xuất bách phân vị từ raw log .jtl rất nhanh chóng.
+
+Tuy nhiên, điểm yếu cốt tử của AI là thiếu khả năng tự kiểm chứng thực tế và mắc nhiều ảo tưởng kỹ thuật. Ở khâu sinh kịch bản (Task 1), AI cấu hình sai cú pháp nghiêm trọng tại JSONPostProcessor khi để jsonPathExprs chứa 3 biểu thức ngăn cách bởi dấu chấm phẩy nhưng chỉ gán 1 tên biến, gây ra lỗi IllegalArgumentException làm gãy luồng 05_Checkout và 06_CancelOrder; đồng thời AI không chủ động kiểm tra việc nạp dữ liệu tài khoản vào CSDL, gây lỗi 401 Unauthorized hàng loạt khi chạy tải. Ở khâu phân tích log (Task 2), AI rơi vào "bẫy số liệu trung bình" khi ngộ nhận hệ thống đạt SLA chỉ dựa trên Average Latency, bỏ qua hiện tượng suy thoái p95 lên tới 785ms – 1200ms và ảo tưởng các giải pháp phi thực tế (bịa đặt hàm connection pool, đề xuất cụm phân tán PostgreSQL/Redis/Kubernetes cho ứng dụng SQLite đơn file cục bộ) mà bỏ quên giải pháp tối ưu cốt lõi là bật chế độ SQLite WAL mode. Nguyên nhân do AI hoạt động theo xác suất thống kê tri thức chung, thiếu hiểu biết ngữ cảnh nội tại của SUT và không thể tự chạy runtime.
+
+Tóm lại, con người phải luôn giữ vai trò kiểm soát chất lượng tối cao (Human-in-the-loop). Kỹ sư QA tuyệt đối không tin tưởng mù quáng vào các nhận định tổng quát của AI, bắt buộc phải Dry-Run kịch bản thực tế và luôn lấy dữ liệu thô từ file log .jtl cùng mã nguồn SUT làm thước đo chân lý duy nhất (Ground Truth) để đối chứng.
+```

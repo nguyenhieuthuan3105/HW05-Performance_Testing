@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
  * ============================================================================
- * AGENT SKILL: Performance Testing & Log Analyzer (CI/CD Quality Gate)
+ * AGENT SKILL: Universal Performance Testing & Log Analyzer (CI/CD Quality Gate)
  * Generic, Reusable, Full-Lifecycle Performance Testing Agent Skill
- * MSSV: 23127125 | Họ và tên: Nguyễn Hiếu Thuận
+ * Framework-Agnostic | Environment-Driven | Declarative Configuration
  * ============================================================================
  */
 
@@ -11,6 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 const http = require('http');
+const https = require('https');
 const os = require('os');
 
 // 1. Phân tích CLI Arguments & Trợ giúp (--help)
@@ -32,17 +33,18 @@ function parseArgs() {
 function printHelp() {
     console.log(`
 ================================================================================
-🚀 AGENT SKILL: Performance Testing & Log Analyzer (CI/CD Quality Gate)
+🚀 AGENT SKILL: Universal Performance Testing & Log Analyzer (CI/CD Quality Gate)
 ================================================================================
 Cú pháp:
   node index.js [options]
 
 Các tùy chọn tham số đầu vào (CLI Flags):
-  --jtl <path>              Phân tích trực tiếp file log .jtl có sẵn (bỏ qua chạy test).
+  --jtl <path>              Phân tích trực tiếp file log .jtl có sẵn (bỏ qua bước chạy test).
   --plan <path>             File kịch bản JMeter (.jmx) cần thực thi.
   --config <path>           File cấu hình tham số JSON tùy chỉnh (mặc định: perf_config.json).
-  --url <url>               URL máy chủ SUT cần kiểm thử (mặc định: http://localhost:3000).
-  --seed <script>           Đường dẫn script nạp dữ liệu môi trường (mặc định: scripts/seed_users.js).
+  --url <url>               URL máy chủ SUT cần kiểm thử (hoặc biến env TARGET_URL).
+  --health-path <path>      Endpoint kiểm tra sức khỏe hệ thống (mặc định: /api/health hoặc /).
+  --seed <script>           Đường dẫn script nạp dữ liệu môi trường (nếu có).
   --no-seed                 Bỏ qua bước nạp dữ liệu kiểm thử.
   --baseline <path>         File mốc chuẩn so sánh hiệu năng (mặc định: perf_baseline.json).
   --init-baseline           Tự động lấy kết quả bài test hiện tại làm mốc chuẩn baseline mới.
@@ -52,25 +54,69 @@ Các tùy chọn tham số đầu vào (CLI Flags):
   --report <path>           Đường dẫn file báo cáo Markdown xuất ra (mặc định: reports/perf_summary_report.md).
   -h, --help                Hiển thị hướng dẫn sử dụng này.
 
+Biến môi trường hỗ trợ (Environment Variables):
+  TARGET_URL                URL máy chủ dịch vụ mục tiêu (ví dụ: http://localhost:3000)
+  HEALTHCHECK_ENDPOINT      Endpoint kiểm tra sẵn sàng (ví dụ: /api/health)
+  TEST_PLAN                 Đường dẫn file kịch bản kiểm thử (.jmx)
+  SEED_SCRIPT               Đường dẫn file script nạp dữ liệu
+  PERF_BASELINE             Đường dẫn file baseline benchmark
+
 Ví dụ sử dụng:
-  1. Phân tích file log có sẵn:
+  1. Phân tích nhanh file log JTL:
      node index.js --jtl test-results/load_results.jtl
-  2. Chạy kịch bản và tự tạo mốc chuẩn baseline:
-     node index.js --jtl test-results/load_results.jtl --init-baseline
+  2. Chạy test trên môi trường tùy biến:
+     node index.js --url http://127.0.0.1:8080 --plan test-plans/my_plan.jmx
   3. Phân tích với ngưỡng SLA khắt khe:
      node index.js --jtl test-results/stress_results.jtl --sla-p95 300 --sla-regression 10
 ================================================================================
 `);
 }
 
-// 2. Nạp cấu hình theo thứ tự ưu tiên: CLI > Config File > Fallback Defaults
+// Hàm hỗ trợ thay thế các placeholder dạng ${VAR:-default} bằng giá trị môi trường
+function resolveEnvVars(str) {
+    if (typeof str !== 'string') return str;
+    return str.replace(/\$\{([^:-]+)(?::-([^}]*))?\}/g, (match, varName, defaultValue) => {
+        return process.env[varName] !== undefined ? process.env[varName] : (defaultValue !== undefined ? defaultValue : '');
+    });
+}
+
+function deepResolveEnv(obj) {
+    if (typeof obj === 'string') return resolveEnvVars(obj);
+    if (Array.isArray(obj)) return obj.map(deepResolveEnv);
+    if (obj !== null && typeof obj === 'object') {
+        const res = {};
+        for (const [k, v] of Object.entries(obj)) {
+            res[k] = deepResolveEnv(v);
+        }
+        return res;
+    }
+    return obj;
+}
+
+// 2. Nạp cấu hình theo thứ tự ưu tiên: CLI > Environment Variables > Config File > Fallback Defaults
 function loadConfig(options) {
     let config = {
-        target: { serverUrl: 'http://localhost:3000', healthcheckEndpoint: '/api/products' },
-        setup: { autoSeed: true, seedScript: 'scripts/seed_users.js' },
-        testExecution: { testPlan: 'test-plans/23127125_Load_20260828.jmx', outputJtl: 'test-results/skill_run_results.jtl' },
-        qualityGate: { baselineFile: path.resolve(__dirname, 'perf_baseline.json'), slaMaxP95Ms: 500, slaMaxErrorPercent: 1.0, maxP95RegressionPercent: 15.0 },
-        reporting: { markdownReport: 'reports/perf_summary_report.md' }
+        target: {
+            serverUrl: process.env.TARGET_URL || process.env.BASE_URL || 'http://localhost:3000',
+            healthcheckEndpoint: process.env.HEALTHCHECK_ENDPOINT || '/api/health'
+        },
+        setup: {
+            autoSeed: false,
+            seedScript: process.env.SEED_SCRIPT || ''
+        },
+        testExecution: {
+            testPlan: process.env.TEST_PLAN || 'test-plans/load_test.jmx',
+            outputJtl: process.env.OUTPUT_JTL || 'test-results/skill_run_results.jtl'
+        },
+        qualityGate: {
+            baselineFile: process.env.PERF_BASELINE || path.resolve(__dirname, 'perf_baseline.json'),
+            slaMaxP95Ms: 500,
+            slaMaxErrorPercent: 1.0,
+            maxP95RegressionPercent: 15.0
+        },
+        reporting: {
+            markdownReport: process.env.PERF_REPORT || 'reports/perf_summary_report.md'
+        }
     };
 
     const configPath = options.config 
@@ -80,7 +126,8 @@ function loadConfig(options) {
     if (fs.existsSync(configPath)) {
         try {
             const raw = fs.readFileSync(configPath, 'utf8');
-            const fileConfig = JSON.parse(raw);
+            const parsed = JSON.parse(raw);
+            const fileConfig = deepResolveEnv(parsed);
             config = {
                 ...config,
                 ...fileConfig,
@@ -91,14 +138,19 @@ function loadConfig(options) {
                 reporting: { ...config.reporting, ...(fileConfig.reporting || {}) }
             };
         } catch (e) {
-            console.warn(`⚠️ [WARN] Lỗi cú pháp trong file cấu hình tại ${configPath}. Sử dụng fallback defaults.`);
+            console.warn(`⚠️ [WARN] Không thể đọc hoặc parse file cấu hình tại ${configPath}. Sử dụng fallback defaults.`);
         }
     }
 
+    // CLI overrides
     if (options.jtl) config.testExecution.inputJtl = options.jtl;
     if (options.plan) config.testExecution.testPlan = options.plan;
     if (options.url) config.target.serverUrl = options.url;
-    if (options.seed) config.setup.seedScript = options.seed;
+    if (options['health-path']) config.target.healthcheckEndpoint = options['health-path'];
+    if (options.seed) {
+        config.setup.seedScript = options.seed;
+        config.setup.autoSeed = true;
+    }
     if (options['no-seed']) config.setup.autoSeed = false;
     if (options.baseline) config.qualityGate.baselineFile = options.baseline;
     if (options.report) config.reporting.markdownReport = options.report;
@@ -106,6 +158,29 @@ function loadConfig(options) {
     if (options['sla-error']) config.qualityGate.slaMaxErrorPercent = parseFloat(options['sla-error']);
     if (options['sla-regression']) config.qualityGate.maxP95RegressionPercent = parseFloat(options['sla-regression']);
     if (options['init-baseline']) config.qualityGate.initBaseline = true;
+
+    // Tự động phát hiện file kịch bản nếu đường dẫn mặc định chưa tồn tại
+    if (!config.testExecution.inputJtl && !fs.existsSync(path.resolve(config.testExecution.testPlan))) {
+        const testPlansDir = path.resolve('test-plans');
+        if (fs.existsSync(testPlansDir)) {
+            const jmxFiles = fs.readdirSync(testPlansDir).filter(f => f.endsWith('.jmx'));
+            if (jmxFiles.length > 0) {
+                config.testExecution.testPlan = path.join('test-plans', jmxFiles[0]);
+            }
+        }
+    }
+
+    // Tự động phát hiện seed script nếu có
+    if (!config.setup.seedScript) {
+        const candidateSeeds = ['scripts/seed_users.js', 'scripts/seed.js', 'seed.js'];
+        for (const s of candidateSeeds) {
+            if (fs.existsSync(path.resolve(s))) {
+                config.setup.seedScript = s;
+                config.setup.autoSeed = true;
+                break;
+            }
+        }
+    }
 
     return config;
 }
@@ -162,27 +237,37 @@ function findJmeterExecutable() {
     return 'jmeter';
 }
 
-// 4. Pre-flight Healthcheck
+// 4. Pre-flight Healthcheck linh hoạt
 async function checkHealth(url, endpoint) {
-    return new Promise((resolve) => {
-        try {
-            const fullUrl = new URL(endpoint || '/', url);
-            const req = http.get(fullUrl.toString(), (res) => {
-                if (res.statusCode >= 200 && res.statusCode < 400) {
-                    resolve({ ok: true, status: res.statusCode });
-                } else {
-                    resolve({ ok: false, status: res.statusCode });
-                }
-            });
-            req.on('error', (err) => resolve({ ok: false, error: err.message }));
-            req.setTimeout(3000, () => {
-                req.destroy();
-                resolve({ ok: false, error: 'Timeout' });
-            });
-        } catch (e) {
-            resolve({ ok: false, error: e.message });
-        }
-    });
+    const endpointsToTry = [endpoint, '/api/health', '/health', '/api/products', '/api/status', '/'];
+    const uniqueEndpoints = [...new Set(endpointsToTry.filter(Boolean))];
+
+    for (const ep of uniqueEndpoints) {
+        const result = await new Promise((resolve) => {
+            try {
+                const target = new URL(ep, url);
+                const client = target.protocol === 'https:' ? https : http;
+                const req = client.get(target.toString(), (res) => {
+                    if (res.statusCode >= 200 && res.statusCode < 400) {
+                        resolve({ ok: true, status: res.statusCode, endpoint: ep });
+                    } else {
+                        resolve({ ok: false, status: res.statusCode, endpoint: ep });
+                    }
+                });
+                req.on('error', (err) => resolve({ ok: false, error: err.message, endpoint: ep }));
+                req.setTimeout(3000, () => {
+                    req.destroy();
+                    resolve({ ok: false, error: 'Timeout', endpoint: ep });
+                });
+            } catch (e) {
+                resolve({ ok: false, error: e.message, endpoint: ep });
+            }
+        });
+
+        if (result.ok) return result;
+    }
+
+    return { ok: false, error: 'Tất cả các endpoint kiểm tra kết nối đều không phản hồi' };
 }
 
 // 5. Parse file JTL / CSV
@@ -240,7 +325,7 @@ function parseJtl(filePath) {
 
         samplers[label].samples.push(elapsed);
         samplers[label].totalElapsed += elapsed;
-        if (!success || (code !== '200' && code !== '201')) {
+        if (!success || (code !== '200' && code !== '201' && code !== '204')) {
             samplers[label].errors++;
         }
     }
@@ -369,7 +454,7 @@ function evaluateQualityGate(metrics, config) {
         actual: `${metrics.overall.p95.toFixed(2)} ms`,
         threshold: `${slaP95} ms`,
         status: p95Pass ? 'PASS' : 'FAIL',
-        impact: p95Pass ? 'Đạt SLA' : 'Vi phạm SLA hệ thống'
+        impact: p95Pass ? 'Đạt SLA cam kết' : 'Vi phạm SLA hệ thống'
     });
     if (!p95Pass) isPassed = false;
 
@@ -380,7 +465,7 @@ function evaluateQualityGate(metrics, config) {
         actual: `${metrics.overall.errorRate.toFixed(2)}%`,
         threshold: `${slaError}%`,
         status: errorPass ? 'PASS' : 'FAIL',
-        impact: errorPass ? 'Đạt độ tin cậy' : 'Tỷ lệ lỗi cao'
+        impact: errorPass ? 'Đạt độ tin cậy' : 'Tỷ lệ lỗi cao bất thường'
     });
     if (!errorPass) isPassed = false;
 
@@ -395,7 +480,7 @@ function evaluateQualityGate(metrics, config) {
             actual: `${deltaP95 >= 0 ? '+' : ''}${deltaP95.toFixed(2)}% (Mốc: ${baseP95.toFixed(2)} ms -> Hiện tại: ${metrics.overall.p95.toFixed(2)} ms)`,
             threshold: `+${maxRegression}%`,
             status: regressionPass ? 'PASS' : 'FAIL',
-            impact: regressionPass ? 'Không suy thoái' : 'PHÁT HIỆN PERFORMANCE REGRESSION'
+            impact: regressionPass ? 'Hiệu năng ổn định' : 'PHÁT HIỆN SUY THOÁI HIỆU NĂNG (PERFORMANCE REGRESSION)'
         });
         if (!regressionPass) isPassed = false;
     } else {
@@ -411,12 +496,12 @@ function evaluateQualityGate(metrics, config) {
     return { isPassed, checks, baseline, deltaP95 };
 }
 
-// 8. Chẩn đoán nguyên nhân gốc Tổng quát (Heuristic AI Diagnostics)
+// 8. Chẩn đoán nguyên nhân gốc Tổng quát (Generic Heuristic AI Diagnostics)
 function generateAiDiagnostics(metrics) {
     const suggestions = [];
 
-    // Heuristic 1: Phát hiện Sampler Ghi bị nghẽn
-    const writeKeywords = ['cancel', 'checkout', 'create', 'order', 'insert', 'update', 'write', 'post', 'put', 'delete', 'buy', 'pay'];
+    // Heuristic 1: Phát hiện Sampler Ghi bị nghẽn (Write Lock / Exclusive Lock)
+    const writeKeywords = ['cancel', 'checkout', 'create', 'order', 'insert', 'update', 'write', 'post', 'put', 'delete', 'buy', 'pay', 'save'];
     const slowWriteSamplers = Object.values(metrics.samplers).filter(s => {
         const lower = s.label.toLowerCase();
         const isWrite = writeKeywords.some(kw => lower.includes(kw));
@@ -428,15 +513,15 @@ function generateAiDiagnostics(metrics) {
         suggestions.push({
             type: 'DATABASE_LOCK_CONTENTION',
             severity: 'CRITICAL',
-            title: 'Nghẽn Khóa Ghi Cơ sở dữ liệu (Database Write Lock Contention)',
+            title: 'Tranh chấp Khóa Ghi Cơ sở dữ liệu (Database Write Lock Contention)',
             finding: `Các thao tác Ghi dữ liệu đồng thời [${names}] bị suy thoái độ trễ nghiêm trọng do tranh chấp khóa độc quyền (Exclusive Lock).`,
-            solution: 'Đối với SQLite: Bật chế độ WAL (Write-Ahead Logging) và tăng Busy Timeout. Đối với RDBMS khác: Kiểm tra isolation level hoặc tối ưu transaction scope.',
-            codeSnippet: 'db.run("PRAGMA journal_mode = WAL;");\ndb.run("PRAGMA busy_timeout = 5000;");'
+            solution: 'Đối với SQLite: Bật chế độ WAL (Write-Ahead Logging) và tăng Busy Timeout. Đối với RDBMS khác (MySQL, Postgres): Giảm phạm vi transaction hoặc điều chỉnh Isolation Level.',
+            codeSnippet: '// SQLite Optimization:\ndb.run("PRAGMA journal_mode = WAL;");\ndb.run("PRAGMA busy_timeout = 5000;");'
         });
     }
 
-    // Heuristic 2: Phát hiện Sampler Đọc bị quét toàn bảng
-    const readKeywords = ['get', 'read', 'find', 'list', 'search', 'query', 'my-orders', 'history', 'filter'];
+    // Heuristic 2: Phát hiện Sampler Đọc bị quét toàn bảng (Full Table Scan / Missing Index)
+    const readKeywords = ['get', 'read', 'find', 'list', 'search', 'query', 'my-orders', 'history', 'filter', 'items', 'users'];
     const slowReadSamplers = Object.values(metrics.samplers).filter(s => {
         const lower = s.label.toLowerCase();
         const isRead = readKeywords.some(kw => lower.includes(kw));
@@ -455,7 +540,7 @@ function generateAiDiagnostics(metrics) {
         });
     }
 
-    // Heuristic 3: Lệch đuôi độ trễ toàn hệ thống
+    // Heuristic 3: Lệch đuôi độ trễ toàn hệ thống (Tail Latency Skewness)
     if (metrics.overall.p99 > 3 * metrics.overall.p50 && metrics.overall.p99 > 300) {
         suggestions.push({
             type: 'TAIL_LATENCY_SKEW',
@@ -498,7 +583,7 @@ function exportMarkdownReport(metrics, qg, suggestions, outputPath) {
     }
 
     if (suggestions.length > 0) {
-        md += `\n---\n\n## 4. Chẩn đoán Điểm nghẽn & Đề xuất Tối ưu hóa (Heuristic AI Suggestions)\n\n`;
+        md += `\n---\n\n## 4. Chẩn đoán Điểm nghẽn & Đề xuất Tối ưu hóa (Generic Heuristic AI Diagnostics)\n\n`;
         for (const s of suggestions) {
             md += `### 🔍 [${s.severity}] ${s.title}\n`;
             md += `- **Phát hiện:** ${s.finding}\n`;
@@ -524,8 +609,8 @@ async function main() {
     }
 
     console.log(`\n========================================================================`);
-    console.log(`🚀 AGENT SKILL: Performance Testing & Log Analyzer (CI/CD Quality Gate)`);
-    console.log(`👤 Sinh viên: Nguyễn Hiếu Thuận | MSSV: 23127125`);
+    console.log(`🚀 AGENT SKILL: Universal Performance Testing & Log Analyzer`);
+    console.log(`📌 Architecture: Generic, Reusable, Full-Lifecycle Quality Gate`);
     console.log(`========================================================================\n`);
 
     const config = loadConfig(options);
@@ -536,10 +621,10 @@ async function main() {
         console.log(`[BƯỚC 1/5] Kiểm tra kết nối SUT Server (${config.target.serverUrl})...`);
         const health = await checkHealth(config.target.serverUrl, config.target.healthcheckEndpoint);
         if (!health.ok) {
-            console.error(`❌ [ERROR] SUT Server không phản hồi tại ${config.target.serverUrl} (${health.error || health.status}). Hãy bật backend trước!`);
+            console.error(`❌ [ERROR] SUT Server không phản hồi tại ${config.target.serverUrl} (${health.error || health.status}). Hãy đảm bảo backend đang hoạt động!`);
             process.exit(1);
         }
-        console.log(`✅ [OK] SUT Server đang hoạt động tốt (Status ${health.status}).\n`);
+        console.log(`✅ [OK] SUT Server sẵn sàng (Status ${health.status} tại endpoint ${health.endpoint}).\n`);
 
         if (config.setup.autoSeed && config.setup.seedScript && fs.existsSync(config.setup.seedScript)) {
             console.log(`[BƯỚC 2/5] Nạp dữ liệu kiểm thử tự động (Data Provisioning: ${config.setup.seedScript})...`);
@@ -560,8 +645,9 @@ async function main() {
             process.exit(1);
         }
 
-        // Tự động đảm bảo file test-data.csv có mặt ở thư mục hiện tại khi chạy JMeter
-        const csvInPlan = path.resolve(path.dirname(jmxPath), 'test-data.csv');
+        // Tự động đảm bảo file CSV dữ liệu (nếu có trong cùng thư mục .jmx) có mặt ở CWD
+        const planDir = path.dirname(jmxPath);
+        const csvInPlan = path.resolve(planDir, 'test-data.csv');
         const csvInCwd = path.resolve('test-data.csv');
         let autoCopiedCsv = false;
         if (fs.existsSync(csvInPlan) && !fs.existsSync(csvInCwd)) {
@@ -574,20 +660,22 @@ async function main() {
         if (fs.existsSync(targetJtl)) fs.unlinkSync(targetJtl);
 
         const jmeterExec = findJmeterExecutable();
-        const logPath = path.resolve(path.dirname(targetJtl), 'jmeter.log');
+        const logDir = path.dirname(targetJtl);
+        if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
+        const logPath = path.resolve(logDir, 'jmeter.log');
         const jmeterCmd = `${jmeterExec} -n -t "${jmxPath}" -l "${targetJtl}" -j "${logPath}"`;
         console.log(`⚡ Executing CLI: ${jmeterCmd}`);
         try {
             execSync(jmeterCmd, { stdio: 'inherit' });
             console.log(`✅ [OK] Kiểm thử hoàn tất! Dữ liệu đã lưu tại: ${targetJtl}\n`);
         } catch (e) {
-            console.warn(`⚠️ [WARN] Lỗi khi gọi JMeter CLI: ${e.message}`);
+            console.warn(`⚠️ [WARN] Cảnh báo khi gọi JMeter CLI: ${e.message}`);
             if (!fs.existsSync(targetJtl)) {
                 console.error(`❌ [ERROR] Không tìm thấy dữ liệu JTL để phân tích.`);
                 process.exit(1);
             }
         } finally {
-            // Tự động dọn dẹp file test-data.csv tạm ở thư mục gốc để giữ thư mục luôn sạch sẽ
+            // Tự động dọn dẹp file CSV tạm ở thư mục gốc để giữ thư mục luôn sạch sẽ
             if (autoCopiedCsv && fs.existsSync(csvInCwd)) {
                 try {
                     fs.unlinkSync(csvInCwd);

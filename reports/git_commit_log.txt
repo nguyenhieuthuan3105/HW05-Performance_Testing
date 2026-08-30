@@ -1,0 +1,10 @@
+﻿eb4c682 - Ruby, 2026-08-30 14:37:41 +0700 : docs: update monitor evidence
+264cdf2 - Ruby, 2026-08-29 16:06:22 +0700 : feat: create agentskill
+360ef67 - Ruby, 2026-08-29 14:39:57 +0700 : feat: log bugs on github issues, generate seed account script
+fcfb140 - Ruby, 2026-08-28 21:09:10 +0700 : feat(report): complete Task 3 Continuous Performance Testing proposal and CI/CD quality gate
+d970fd1 - Ruby, 2026-08-28 19:58:10 +0700 : fix: recheck and validate the ai recommends
+ad6fa9d - Ruby, 2026-08-28 19:35:59 +0700 : feat(perf-test): complete Task 1 test plans execution and Task 2 AI log analysis report
+ec85958 - Ruby, 2026-08-28 15:38:44 +0700 : feat: create 3 skeleton jmx. Finish laod test jmx
+e01c7d9 - Ruby, 2026-08-28 10:46:00 +0700 : setup: setup jmeter, relocate help files
+cb16a96 - Ruby, 2026-08-28 09:33:18 +0700 : feature: create automation audit log skill.
+684f1bd - Ruby, 2026-08-24 11:17:30 +0700 : initial commit

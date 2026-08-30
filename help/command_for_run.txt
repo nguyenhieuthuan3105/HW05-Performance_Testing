@@ -1,0 +1,5 @@
+jmeter -n -t "test-plans/23127125_Load_20260828.jmx" -l "test-results/load_results.jtl" -e -o "test-results/load_html_report"
+
+jmeter -n -t "test-plans/23127125_Stress_20260828.jmx" -l "test-results/stress_results.jtl" -e -o "test-results/stress_html_report"
+
+jmeter -n -t "test-plans/23127125_Spike_20260828.jmx" -l "test-results/spike_results.jtl" -e -o "test-results/spike_html_report"

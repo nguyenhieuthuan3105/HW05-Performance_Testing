@@ -3,7 +3,7 @@
 **MSSV:** 23127125  
 **Họ và tên:** Nguyễn Hiếu Thuận  
 **Bài tập:** HW05 - Performance Testing & AI Collaboration  
-**Chức năng kiểm thử:** Workflow 2 (Săn voucher, Thanh toán và Hủy đơn hàng)  
+**Chức năng kiểm thử:** Workflow (Săn voucher, Thanh toán và Hủy đơn hàng)  
 
 ---
 

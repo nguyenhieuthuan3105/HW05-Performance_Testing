@@ -1,14 +1,14 @@
 {
   "target": {
-    "serverUrl": "http://localhost:3000",
-    "healthcheckEndpoint": "/api/products"
+    "serverUrl": "${TARGET_URL:-http://localhost:3000}",
+    "healthcheckEndpoint": "${HEALTHCHECK_ENDPOINT:-/api/health}"
   },
   "setup": {
-    "autoSeed": true,
-    "seedScript": "scripts/seed_users.js"
+    "autoSeed": false,
+    "seedScript": "${SEED_SCRIPT:-}"
   },
   "testExecution": {
-    "testPlan": "test-plans/23127125_Load_20260828.jmx",
+    "testPlan": "${TEST_PLAN:-test-plans/load_test.jmx}",
     "outputJtl": "test-results/skill_run_results.jtl"
   },
   "qualityGate": {

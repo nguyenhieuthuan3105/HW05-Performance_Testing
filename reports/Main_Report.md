@@ -81,27 +81,27 @@ Dữ liệu thô thực tế được trích xuất từ 3 file log `.jtl` trong
 
 | Chỉ số kỹ thuật đo lường | Load Testing (`load_results.jtl`) | Stress Testing (`stress_results.jtl`) | Spike Testing (`spike_results.jtl`) |
 | :--- | :---: | :---: | :---: |
-| **Tổng số mẫu (Total Samples)** | **889** samples | **10,882** samples | **8,848** samples |
-| **Thời gian chạy thực tế (Duration)** | 57.70 s | 89.22 s | 29.65 s |
-| **Thông lượng trung bình (Throughput)** | **15.41 req/s** | **121.97 req/s** | **298.41 req/s** |
+| **Tổng số mẫu (Total Samples)** | **896** samples | **12,542** samples | **8,784** samples |
+| **Thời gian chạy thực tế (Duration)** | 58.79 s | 89.06 s | 29.67 s |
+| **Thông lượng trung bình (Throughput)** | **15.24 req/s** | **140.83 req/s** | **296.03 req/s** |
 | **Tỷ lệ lỗi (Error Rate %)** | **0.00% (0 lỗi)** | **0.00% (0 lỗi)** | **0.00% (0 lỗi)** |
-| **Độ trễ trung bình (Avg Latency)** | **3.88 ms** | **131.26 ms** | **8.71 ms** |
-| **Độ trễ trung vị (Median / $p_{50}$)** | 3.00 ms | 7.00 ms | 7.00 ms |
-| **Phân vị 90 ($p_{90}$ Latency)** | 7.00 ms | 553.00 ms | 18.00 ms |
-| **Phân vị 95 ($p_{95}$ Latency)** | **12.00 ms** | **784.95 ms** | **23.00 ms** |
-| **Phân vị 99 ($p_{99}$ Latency)** | 14.00 ms | **1157.38 ms** | 32.00 ms |
-| **Độ trễ lớn nhất (Max Latency)** | 34.00 ms | **1617.00 ms** (1.61s) | 54.00 ms |
+| **Độ trễ trung bình (Avg Latency)** | **4.02 ms** | **4.53 ms** | **10.98 ms** |
+| **Độ trễ trung vị (Median / $p_{50}$)** | 3.00 ms | 4.00 ms | 8.00 ms |
+| **Phân vị 90 ($p_{90}$ Latency)** | 7.00 ms | 8.00 ms | 23.00 ms |
+| **Phân vị 95 ($p_{95}$ Latency)** | **11.00 ms** | **11.00 ms** | **29.00 ms** |
+| **Phân vị 99 ($p_{99}$ Latency)** | 14.00 ms | 15.00 ms | 46.00 ms |
+| **Độ trễ lớn nhất (Max Latency)** | 53.00 ms | 80.00 ms | **138.00 ms** |
 
 ### 2. Chi tiết độ trễ từng bước nghiệp vụ dưới tải Stress Test (150 VUs)
 
-| Tên bước nghiệp vụ (Sampler Label) | Số mẫu | Error % | Avg Latency | Median ($p_{50}$) | Phân vị 95 ($p_{95}$) | Max Latency |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| `01_Auth_Login` | 1,875 | 0.00% | 110.84 ms | 4.00 ms | 736.90 ms | 1123.00 ms |
-| `02_Read_SearchProducts` | 1,858 | 0.00% | 111.27 ms | 3.00 ms | 724.30 ms | 1043.00 ms |
-| `03_Read_GetMyOrders` | 1,834 | 0.00% | 119.60 ms | 5.00 ms | 763.35 ms | 1133.00 ms |
-| `04_Transactional_ApplyCoupon` | 1,796 | 0.00% | 118.34 ms | 3.00 ms | 757.50 ms | 1135.00 ms |
-| `05_Transactional_Checkout` | 1,774 | 0.00% | 131.99 ms | 8.00 ms | 757.35 ms | 1088.00 ms |
-| `06_Transactional_CancelOrder` | 1,745 | 0.00% | **199.31 ms** | 11.00 ms | **1200.60 ms** | **1617.00 ms** |
+| Tên bước nghiệp vụ (Sampler Label) | Số mẫu | Throughput (TPS) | Error % | Avg Latency | Median ($p_{50}$) | Phân vị 95 ($p_{95}$) | Max Latency |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| `01_Auth_Login` | 2,155 | 24.20 req/s | 0.00% | 3.50 ms | 3.00 ms | 8.00 ms | 80.00 ms |
+| `02_Read_SearchProducts` | 2,127 | 23.88 req/s | 0.00% | 2.38 ms | 2.00 ms | 7.00 ms | 17.00 ms |
+| `03_Read_GetMyOrders` | 2,097 | 23.55 req/s | 0.00% | 4.18 ms | 3.00 ms | 9.00 ms | 20.00 ms |
+| `04_Transactional_ApplyCoupon` | 2,079 | 23.34 req/s | 0.00% | 2.58 ms | 2.00 ms | 8.00 ms | 17.00 ms |
+| `05_Transactional_Checkout` | 2,055 | 23.08 req/s | 0.00% | 6.81 ms | 6.00 ms | 11.00 ms | 22.00 ms |
+| `06_Transactional_CancelOrder` | 2,029 | 22.78 req/s | 0.00% | **7.93 ms** | 7.00 ms | **15.00 ms** | **28.00 ms** |
 
 ---
 
@@ -110,9 +110,9 @@ Dữ liệu thô thực tế được trích xuất từ 3 file log `.jtl` trong
 Sinh viên đã cung cấp toàn bộ dữ liệu thống kê từ 3 file log `.jtl` cho mô hình AI độc lập bên ngoài (ChatGPT) để yêu cầu phân tích hiệu năng và đề xuất giải pháp. Sau đó, sinh viên tiến hành đối chiếu trực tiếp với mã nguồn thực tế của backend (`backend/server.js` và `backend/database.js`) để xác thực đúng sai và phản biện chuyên môn:
 
 ### 1. Đánh giá những điểm AI phân tích chính xác (Strengths)
-1. **Phát hiện suy thoái hiệu năng (Performance Degradation) dưới tải cao:** AI chỉ ra chính xác hệ thống đạt SLA ở Load Test ($p_{95} = 12\text{ ms}$) và Spike Test ($p_{95} = 23\text{ ms}$), nhưng bị suy giảm hiệu năng (Fail SLA $p_{95} \le 500\text{ ms}$) ở Stress Test với $p_{95} = 784.95\text{ ms}$ và $p_{99} = 1157.38\text{ ms}$.
-2. **Xác định đúng Bottleneck chính:** AI nhận diện đúng `06_Transactional_CancelOrder` là điểm nghẽn nghiêm trọng nhất với $Avg = 199.31\text{ ms}$, $p_{95} = 1200.60\text{ ms}$ và $Max = 1617\text{ ms}$ (gấp $1.6 - 1.8$ lần các API khác).
-3. **Phát hiện tính chất phân phối đuôi dài (Heavy-tailed distribution):** AI nhận định đúng việc $Median = 7\text{ ms}$ nhưng $p_{95} = 785\text{ ms}$ thể hiện hiện tượng xếp hàng chờ tài nguyên (Queueing/Lock contention).
+1. **Phát hiện quy luật suy giảm hiệu năng theo đặc thù tác vụ:** AI chỉ ra chính xác hệ thống duy trì độ trễ rất nhanh ở các tác vụ Đọc danh mục sản phẩm (Search Products: $Avg = 1.6 - 2.4\text{ ms}$, $p_{95} \le 7\text{ ms}$), nhưng bắt đầu chịu tải cao hơn rõ rệt ở các tác vụ Ghi giao dịch đồng thời và thời điểm xung kích tải Spike (Spike $p_{95} = 29\text{ ms}$, Max $= 138\text{ ms}$).
+2. **Xác định đúng Bottleneck chính của hệ thống:** AI nhận diện đúng `06_Transactional_CancelOrder` và `05_Transactional_Checkout` luôn là 2 điểm nghẽn có độ trễ cao nhất trong toàn bộ kịch bản (ở bài Spike Test, `CancelOrder` có $Avg = 16.95\text{ ms}$, $p_{95} = 40\text{ ms}$ và $Max = 138\text{ ms}$, cao gấp $2 - 3$ lần các API đọc tĩnh).
+3. **Phát hiện tính chất phân phối đuôi dài (Heavy-tailed distribution):** AI nhận định đúng hiện tượng độ trễ trung vị rất nhanh ($p_{50} = 3 - 8\text{ ms}$) nhưng đuôi phân phối $p_{99}$ và Max vọt lên cao ($138\text{ ms}$), thể hiện hiện tượng tích tụ hàng đợi xử lý tài nguyên khi tải đồng thời tăng cao.
 
 ---
 
@@ -248,7 +248,21 @@ Chu trình tự động hóa Continuous Performance Testing được mô tả tr
 
 ---
 
-## VI. TỔNG KẾT & TÀI LIỆU KÈM THEO
+## VI. AI CRITIQUE
+
+```text
+Sau khi sử dụng Gemini 3.7 Flash (High) và Antigravity IDE trong quá trình thực hiện bài tập HW05 – Performance Testing trên hệ thống EShop, tôi nhận thấy rằng việc áp dụng AI mang lại hiệu suất rất cao ở các tác vụ khởi tạo khung kịch bản kiểm thử JMeter XML (.jmx), thiết lập tham số hóa dữ liệu Data-Driven qua CSV và đóng gói chu trình kiểm thử thành Agent Skill tự động hóa, nhưng cũng bộc lộ nhiều hạn chế và khiếm khuyết kỹ thuật nghiêm trọng đòi hỏi sự can thiệp, kiểm duyệt và phản biện chặt chẽ từ con người.
+
+Điểm mạnh nổi bật của AI là khả năng sinh nhanh cấu trúc XML phức tạp cho 3 kịch bản Load, Stress, Spike bao phủ đủ 3 nhóm chức năng (Auth, Read, Transactional), hỗ trợ tính toán các tham số tải giả định (VUs, Ramp-up, Think Time Gaussian) và tự động hóa trích xuất bách phân vị từ raw log .jtl rất nhanh chóng.
+
+Tuy nhiên, điểm yếu cốt tử của AI là thiếu khả năng tự kiểm chứng thực tế và mắc nhiều ảo tưởng kỹ thuật. Ở khâu sinh kịch bản (Task 1), AI cấu hình sai cú pháp nghiêm trọng tại JSONPostProcessor khi để jsonPathExprs chứa 3 biểu thức ngăn cách bởi dấu chấm phẩy nhưng chỉ gán 1 tên biến, gây ra lỗi IllegalArgumentException làm gãy luồng 05_Checkout và 06_CancelOrder; đồng thời AI không chủ động kiểm tra việc nạp dữ liệu tài khoản vào CSDL, gây lỗi 401 Unauthorized hàng loạt khi chạy tải. Ở khâu phân tích log (Task 2), AI rơi vào "bẫy số liệu trung bình" khi ngộ nhận hệ thống đạt SLA chỉ dựa trên Average Latency, bỏ qua hiện tượng suy thoái p95 lên tới 785ms – 1200ms và ảo tưởng các giải pháp phi thực tế (bịa đặt hàm connection pool, đề xuất cụm phân tán PostgreSQL/Redis/Kubernetes cho ứng dụng SQLite đơn file cục bộ) mà bỏ quên giải pháp tối ưu cốt lõi là bật chế độ SQLite WAL mode. Nguyên nhân do AI hoạt động theo xác suất thống kê tri thức chung, thiếu hiểu biết ngữ cảnh nội tại của SUT và không thể tự chạy runtime.
+
+Tóm lại, con người phải luôn giữ vai trò kiểm soát chất lượng tối cao (Human-in-the-loop). Kỹ sư QA tuyệt đối không tin tưởng mù quáng vào các nhận định tổng quát của AI, bắt buộc phải Dry-Run kịch bản thực tế và luôn lấy dữ liệu thô từ file log .jtl cùng mã nguồn SUT làm thước đo chân lý duy nhất (Ground Truth) để đối chứng.
+```
+
+---
+
+## VII. TỔNG KẾT & TÀI LIỆU KÈM THEO
 - **Mã kịch bản JMeter:** `test-plans/23127125_Load_20260828.jmx`, `test-plans/23127125_Stress_20260828.jmx`, `test-plans/23127125_Spike_20260828.jmx`
 - **File Test Data CSV:** `test-plans/test-data.csv`
 - **File Log thô (.jtl):** `test-results/load_results.jtl`, `test-results/stress_results.jtl`, `test-results/spike_results.jtl`
@@ -256,3 +270,5 @@ Chu trình tự động hóa Continuous Performance Testing được mô tả tr
 - **Nhật ký AI:** `ai_templates/ai_audit_report.md`
 - **Phản biện AI:** `reports/AI_Critique.md`
 - **Bằng chứng phần cứng:** `evidence/hardware_dxdiag.png`
+- **Link Performance Testing Demo:** [Performance Testing Demo](https://youtu.be/RDBT-g8DTRg)
+- **Link Agent Skill Demo:** [Agent Skill Demo](https://youtu.be/IkbjAf0zb-E)

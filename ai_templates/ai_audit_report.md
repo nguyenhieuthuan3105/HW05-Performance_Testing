@@ -125,7 +125,7 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
      - Flow 2: Săn Voucher & Hủy đơn hàng (Search -> My Orders -> Apply Coupon -> Checkout -> Cancel).
      - Flow 3: Đăng ký & Hồ sơ (Register -> OTP -> Profile Setup).
      - Flow 4 & 5: Admin Workflow (Fulfillment & Catalog Operations).
-  3. Kết luận: Workflow 2 hoàn toàn hợp lệ, độc lập và đáp ứng 100% tiêu chí đề bài.
+  3. Kết luận: Workflow hoàn toàn hợp lệ, độc lập và đáp ứng 100% tiêu chí đề bài.
   ```
 
 ### Promt 3:
@@ -1017,27 +1017,193 @@ Mỗi phiên tương tác với AI hỗ trợ thực hiện bài tập lớn đ�
   1. Phân định rõ 2 video riêng biệt theo quy định đề bài:
      - Video 1 (Task 1 & 2 - Bắt buộc >= 6 phút): Thuyết minh chạy 3 bài test (Load, Stress, Spike), giám sát Task Manager trên cùng khung hình, đọc chỉ số báo cáo HTML Dashboard.
      - Video 2 (Agent Skill - Mục 7 đề bài): Demo ngắn gọn cách sử dụng Skill end-to-end trên endpoint group.
-  2. Xác nhận cấu trúc 6 Sampler của Workflow 2 trong cả 3 file .jmx (Auth_Login, SearchProducts, GetMyOrders, ApplyCoupon, Checkout, CancelOrder).
-  3. Cung cấp câu lệnh CLI chạy JMeter Non-GUI và kịch bản thuyết minh chi tiết từng bước cho Video Task 1 đọc qua Dashboard HTML Report.
+### Promt 31:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 14:46 30/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  Xử lý lỗi PowerShell: "The term 'jmeter' is not recognized as the name of a cmdlet, function, script file, or operable program."
   ```
 
+### Promt 32:
 
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 14:49 30/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
 
+  ```text
+  Xác nhận trạng thái chạy JMeter Non-GUI: Terminal xuất hiện các dòng WARN StatusConsoleListener và con trỏ nhấp nháy.
+  ```
 
+### Promt 33:
 
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 14:50 30/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
 
+  ```text
+  Xử lý lỗi JMeter: "An error occurred: Cannot write to 'D:\...\test-results\load_html_report' as folder is not empty".
+  ```
 
+### Promt 34:
 
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 15:03 30/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
 
+  ```text
+  Tôi đã chạy lại 3 file và cho ra kết quả hơi khác so với ban đầu. Hãy phân tích lại toàn bộ số liệu trong test-results/ và cập nhật Main_Report.md tương ứng, đồng thời giải thích tại sao có sự chênh lệch này.
+  ```
 
+### Promt 35:
 
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 15:05 30/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
 
+  ```text
+  Những thay đổi số liệu này có ảnh hưởng gì tới các kết quả phân tích và phản biện trong Main_Report.md không?
+  ```
 
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Đánh giá tính toàn vẹn và nhất quán của Báo cáo:
+     - Các kết luận cốt lõi và giá trị học thuật của bài tập được bảo toàn nguyên vẹn 100%:
+       + Bottleneck chính: CancelOrder và Checkout vẫn luôn là 2 endpoint có độ trễ cao nhất toàn hệ thống do đặc thù thao tác Ghi CSDL.
+       + Phản biện 3 lỗi của AI: Vẫn giữ nguyên 100% tính chính xác đối chiếu với mã nguồn backend/server.js (Lỗi ảo tưởng BEGIN...COMMIT, Lỗi bỏ quên SQLite WAL mode, và Lỗi Dirty Read khi cache đơn hàng).
+       + Mô hình Continuous Performance Testing: Quy tắc chặn Quality Gate (Delta p95 > 15%) và phân tích Trade-offs hoàn toàn nhất quán.
+     - Đã đồng bộ câu chữ phần IV.1 để khớp chính xác tuyệt đối với dữ liệu đo đạc thực tế mới nhất.
+  ```
 
+### Promt 36:
 
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 15:08 30/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
 
+  ```text
+  Xây dựng kịch bản quay video demo riêng cho Agent Skill trong môi trường repo độc lập (thời lượng 2-3 phút súc tích, chỉ nói những gì cần thiết): Cần quay gì, chạy lệnh nào và thuyết minh ra sao?
+  ```
 
+- **Kết quả phản hồi của AI (Output):**
+  ```text
+  1. Cung cấp Kịch bản Video Demo Agent Skill tinh gọn 3 phần (Thời lượng 2 - 3 phút):
+     - Phần 1 (0:00 - 0:30): Giới thiệu cấu trúc Skill, tính năng tái sử dụng (reusable) và file cấu hình đầu vào perf_config.json.
+     - Phần 2 (0:30 - 1:30): Chạy 1 lệnh End-to-End duy nhất trên Endpoint Group (node agent_skills/performance_analyzer/index.js) -> Minh họa chu trình tự động: Healthcheck -> Seed Data -> Chạy test -> Parse JTL -> Đánh giá Quality Gate PASSED.
+### Promt 37:
 
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 19:41 30/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
 
+  ```text
+  Tạo file ai_templates/ai_critique.md phản biện AI theo mẫu HW04, bám sát các khiếm khuyết kỹ thuật thực tế của HW05: Lỗi JSONPostProcessor và 401 do thiếu seed data ở Task 1; Lỗi Bẫy số liệu trung bình, ảo tưởng connection pool/Kubernetes và bỏ quên SQLite WAL mode ở Task 2; Rút ra nguyên tắc Human-in-the-loop và lấy raw log .jtl làm Ground Truth.
+  ```
 
+### Promt 38:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 19:47 30/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  Tổng quát hóa toàn bộ các tham số (URL máy chủ, healthcheck, test plan, script nạp dữ liệu...) trong thư mục agent_skills/performance_analyzer/ để loại bỏ các thông tin hardcode, hỗ trợ biến môi trường và áp dụng được cho mọi dự án phần mềm.
+  ```
+
+### Promt 39:
+
+- **Công cụ AI sử dụng:** Gemini 3.7 Flash (High) (Antigravity IDE)
+- **Ngày giờ tương tác:** 19:51 30/08/2026
+- **Câu lệnh đã hỏi (Prompt):**
+
+  ```text
+  Rà soát lại toàn bộ project, kiểm tra đầy đủ từng file (cả hình thức lẫn phần nội dung bên trong) xem đã đáp ứng được bao nhiêu theo yêu cầu của đề bài PDF. Những phần nào đã hoàn thành, những phần nào cần thực hiện, các file nào còn thiếu sót và cấu trúc thư mục để nộp đầy đủ gồm có gì.
+  ```
+
+- **Kết quả phản hồi của AI (Output):**
+  ```
+
+---
+
+## II. AI AUDIT REPORT (BÁO CÁO KIỂM THỬ BỞI AI)
+
+### Sản phẩm 1 (Artifact 1): Khởi tạo khung kịch bản kiểm thử hiệu năng JMeter XML (.jmx) cho Workflow và tham số hóa Data-Driven CSV (`test-data.csv`)
+
+- **(1) Prompt + Tool:**
+  - **Tool:** Gemini 3.7 Flash (High) (Antigravity IDE)
+  - **Thời gian:** 28/08/2026
+  - **Prompt:** `Xây dựng 3 kịch bản kiểm thử hiệu năng JMeter (Load, Stress, Spike) cho Workflow hệ thống EShop (Auth, Read, Transactional) kèm file dữ liệu Data-Driven test-data.csv và cấu hình 3 loại Listener khác nhau.`
+- **(2) AI output:** AI sinh ra cấu trúc file XML `.jmx` và bảng dữ liệu CSV rất nhanh chóng, cấu hình đủ 6 HTTP Samplers theo đúng thứ tự nghiệp vụ, thiết lập CSV Data Set Config và khai báo các Header Manager (Content-Type, Authorization Bearer).
+- **(3) Kết luận:** HOÀN THIỆN (VALID)
+- **(4) Lý do:** AI phát huy thế mạnh vượt trội trong việc tạo lập cấu trúc XML cây phân cấp phức tạp của JMeter Test Plan (TestPlan $\to$ ThreadGroup $\to$ HTTPSamplerProxy $\to$ HeaderManager $\to$ Listeners) mà không gặp lỗi cú pháp XML.
+- **(5) Chỉnh sửa:** Rà soát và chuẩn hóa tên file theo đúng định dạng đề bài `{StudentID}_{ScenarioType}_{YYYYMMDD}.jmx`, tinh chỉnh thời gian Ramp-up và Think Time ngẫu nhiên Gaussian ($800\text{ms} \pm 300\text{ms}$) để mô phỏng hành vi người dùng thực tế.
+
+### Sản phẩm 2 (Artifact 2): Sửa lỗi cú pháp trích xuất JSON Extractor (`JSONPostProcessor`) và Cơ chế Data Provisioning (Task 1 Debugging)
+
+- **(1) Prompt + Tool:**
+  - **Tool:** Gemini 3.7 Flash (High) (Antigravity IDE)
+  - **Thời gian:** 28/08/2026
+  - **Prompt:** `Chạy thử kịch bản Load Test trên JMeter GUI, kiểm tra phản hồi từ View Results Tree xem có phát sinh lỗi kết nối hay lỗi trích xuất biến giữa các bước không.`
+- **(2) AI output:** Khi chạy Dry-Run thực tế, kịch bản do AI sinh ra bị đổ vỡ nghiêm trọng ở 2 khâu:
+  1. *Lỗi lệch pha JSONPostProcessor (IllegalArgumentException):* AI cấu hình thuộc tính `jsonPathExprs` chứa 3 đường dẫn ngăn cách bởi dấu chấm phẩy (`$.order.id;$.id;$.order_id`) nhưng `referenceNames` chỉ khai báo duy nhất 1 tên biến (`order_id`). Sự bất đối xứng đối số này khiến JMeter ném ngoại lệ và hủy ngang bước `05_Transactional_Checkout`, kéo theo bước `06_Transactional_CancelOrder` bị lỗi 404 URL rỗng (`/api/orders/${order_id}/cancel`).
+  2. *Lỗi 401 Unauthorized do thiếu Data Provisioning:* AI khai báo các tài khoản `user1..user5` trong file CSV nhưng không kiểm tra CSDL SUT đã có các tài khoản này hay chưa, dẫn đến toàn bộ request đăng nhập và checkout bị trả về lỗi HTTP 401 khi nạp tải.
+- **(3) Kết luận:** CHƯA HOÀN THIỆN (INCOMPLETE) & KHÔNG HỢP LỆ (INVALID)
+- **(4) Lý do:** AI bị ảo giác về cú pháp JSONPath đa biến của JMeter, đồng thời thiếu nhận thức về trạng thái cơ sở dữ liệu thực tế của hệ thống SUT trước khi thực thi kiểm thử.
+- **(5) Chỉnh sửa:** Tôi đã trực tiếp đọc mã nguồn `backend/server.js` (dòng 307: `res.json({ message: "Checkout successful", orderId: this.lastID })`), sửa lại `JSONPostProcessor` thành duy nhất `$.orderId` gán vào biến `order_id`; đồng thời viết script tự động hóa `scripts/seed_users.js` để nạp sẵn 6 tài khoản test vào CSDL trước khi chạy.
+
+### Sản phẩm 3 (Artifact 3): Phân tích dữ liệu Log `.jtl` và Săn lỗi Ảo tưởng của AI (Task 2 Misinterpretation Hunt)
+
+- **(1) Prompt + Tool:**
+  - **Tool:** Gemini 3.7 Flash & ChatGPT-4o (Antigravity IDE)
+  - **Thời gian:** 28/08/2026 - 29/08/2026
+  - **Prompt:** `Cung cấp toàn bộ bảng số liệu phân vị thống kê từ 3 file log load_results.jtl, stress_results.jtl, spike_results.jtl và yêu cầu AI đánh giá hiệu năng hệ thống, xác định điểm nghẽn và đề xuất giải pháp tối ưu.`
+- **(2) AI output:** AI xác định được xu hướng chậm của các tác vụ ghi nhưng mắc phải 3 hiểu lầm và ảo tưởng kỹ thuật nghiêm trọng:
+  1. *Rơi vào "Bẫy số liệu trung bình":* AI ngộ nhận hệ thống vẫn hoạt động tốt khi chỉ nhìn `Average Latency = 131ms`, bỏ qua thực tế $5\%$ người dùng ($p_{95}$) phải chịu độ trễ $785\text{ms} - 1200\text{ms}$.
+  2. *Ảo tưởng cấu trúc Transaction đa bước `BEGIN...COMMIT`:* AI tự bịa ra logic cập nhật kho `inventory` và khuyên thu hẹp transaction scope, trong khi mã nguồn `server.js` chỉ có câu `INSERT/UPDATE` đơn lẻ.
+  3. *Ảo tưởng cụm PostgreSQL/Redis/Kubernetes và Bỏ quên SQLite WAL mode:* AI đề xuất đập bỏ kiến trúc để dựng cụm phân tán phức tạp, trong khi bỏ quên giải pháp tối ưu số 1 của SUT là thêm đúng 1 dòng lệnh `db.run("PRAGMA journal_mode = WAL;");`.
+- **(3) Kết luận:** KHÔNG HỢP LỆ (INVALID) & ẢO TƯỞNG (HALLUCINATED)
+- **(4) Lý do:** AI hoạt động theo cơ chế suy luận thống kê từ các tài liệu web phổ biến về hệ thống enterprise, không bám sát mã nguồn thực tế của SUT (Monolith + SQLite Rollback Journal).
+- **(5) Chỉnh sửa:** Tôi đã tiến hành phản biện toàn diện trong báo cáo `reports/Main_Report.md` (Mục IV) và lập 3 GitHub Issues tài liệu hóa các lỗi này, đối chiếu trực tiếp từng dòng mã nguồn SUT làm thước đo chân lý (Ground Truth).
+
+### Sản phẩm 4 (Artifact 4): Thiết kế Mô hình Continuous Performance Testing (CPT) và Tiêu chuẩn Quality Gate (Task 3 Proposal)
+
+- **(1) Prompt + Tool:**
+  - **Tool:** Gemini 3.7 Flash (High) (Antigravity IDE)
+  - **Thời gian:** 28/08/2026
+  - **Prompt:** `Đề xuất mô hình Continuous Performance Testing tích hợp CI/CD (GitHub Actions) với cơ chế kích hoạt thông minh, công thức Quality Gate kiểm soát suy thoái p95 (<= 15%), sơ đồ Mermaid và phân tích 2 cặp đánh đổi Trade-offs.`
+- **(2) AI output:** AI đề xuất cấu trúc pipeline CI/CD rất chặt chẽ, phân tầng chiến lược kiểm thử (Mini-load trên Pull Request, Stress/Spike trên Nightly Build), xây dựng công thức đo độ lệch $\Delta p_{95}$ và phân tích thấu đáo 2 cặp đánh đổi (Chi phí/Thời gian vs Coverage; False Alarms vs Noisy Neighbors).
+- **(3) Kết luận:** HOÀN THIỆN (VALID)
+- **(4) Lý do:** AI thể hiện năng lực xuất sắc trong việc thiết kế kiến trúc quy trình kiểm thử liên tục (Shift-Left Testing), chuẩn hóa các tiêu chí cổng chất lượng và mô hình hóa luồng tự động hóa.
+- **(5) Chỉnh sửa:** Hiệu chỉnh ngưỡng dung sai Quality Gate ở mức $\Delta p_{95} \le 15\%$ và bổ sung cơ chế Auto-retry để triệt tiêu hiện tượng báo động giả (Flaky Tests) do biến động phần cứng của môi trường máy ảo chia sẻ (Noisy Neighbors).
+
+### Sản phẩm 5 (Artifact 5): Xây dựng Agent Skill Toàn Vòng Đời `performance_analyzer` (Task 4 Automation)
+
+- **(1) Prompt + Tool:**
+  - **Tool:** Gemini 3.7 Flash (High) (Antigravity IDE)
+  - **Thời gian:** 29/08/2026 - 30/08/2026
+  - **Prompt:** `Xây dựng Agent Skill performance_analyzer hoàn chỉnh (SKILL.md, README.md, index.js, perf_config.json, perf_baseline.json) tự động hóa quy trình Healthcheck, Seed data, chạy JMeter CLI, bóc tách phân vị JTL, đánh giá Quality Gate, tự chẩn đoán lỗi SQLite Write Lock Contention và xuất báo cáo Markdown.`
+- **(2) AI output:** AI sinh ra toàn bộ mã nguồn Node.js và cấu hình Declarative JSON, tự động tìm kiếm vị trí JMeter trên Windows/Linux/macOS, tích hợp module chẩn đoán Heuristic AI và tự dọn dẹp file CSV tạm sau khi chạy.
+- **(3) Kết luận:** HOÀN THIỆN (VALID)
+- **(4) Lý do:** AI phát huy tối đa khả năng lập trình tự động hóa kịch bản, xử lý I/O luồng dữ liệu, tính toán thuật toán thống kê bách phân vị và đóng gói công cụ theo chuẩn Agentic Framework.
+- **(5) Chỉnh sửa:** Tổng quát hóa toàn bộ các tham số (URL máy chủ, healthcheck endpoint, test plan...) hỗ trợ biến môi trường (`${TARGET_URL:-...}`), loại bỏ $100\%$ các giá trị hardcode để Skill có thể tái sử dụng trên bất kỳ hệ thống Web/API nào.
+
+---
+
+### Tổng kết và Kết luận
+
+**1. Tỷ lệ chính xác của AI (AI Accuracy Ratio):**
+Dựa trên 5 Sản phẩm kiểm toán trong toàn bộ đồ án HW05:
+
+- **VALID (Hợp lệ / Hoàn thiện):** ~60% (Sản phẩm 1: Khởi tạo khung JMeter XML & Data-Driven CSV; Sản phẩm 4: Đề xuất mô hình CPT & Quality Gate; Sản phẩm 5: Xây dựng Agent Skill toàn vòng đời).
+- **INVALID (Không hợp lệ / Ảo tưởng):** ~20% (Sản phẩm 3: AI ảo tưởng cú pháp transaction `BEGIN...COMMIT`, đề xuất cụm phân tán PostgreSQL/Redis/Kubernetes phi thực tế và bỏ quên giải pháp tối ưu SQLite WAL mode).
+- **INCOMPLETE (Chưa hoàn thiện / Lỗi cấu hình):** ~20% (Sản phẩm 2: Lỗi cú pháp JSONPostProcessor ném IllegalArgumentException, thiếu provisioning data gây lỗi 401 và các tham số ban đầu bị hardcode cục bộ).
+
+**2. Kết luận & Nguyên tắc Thực nghiệm:**
+Qua quá trình hợp tác và kiểm toán công cụ Gemini 3.7 Flash và Antigravity IDE trong kiểm thử hiệu năng, tôi rút ra các nguyên tắc cốt lõi:
+
+- **KHI NÀO NÊN DÙNG AI:** Sử dụng AI hiệu quả nhất cho các tác vụ sinh khung kịch bản kiểm thử XML/JSON phức tạp, tổng hợp tài liệu quy chuẩn kỹ thuật, xây dựng công thức toán học tính toán bách phân vị và đóng gói quy trình thành Agent Skill tự động hóa.
+- **KHI NÀO KHÔNG NÊN DÙNG AI:** Tuyệt đối không tin tưởng mù quáng vào các nhận định đánh giá hiệu năng tổng quát hoặc các đề xuất giải pháp hạ tầng do AI tự suy diễn khi chưa đối chứng với mã nguồn thực tế. Không để AI tự ý giả định trạng thái dữ liệu trong CSDL.
+- **VAI TRÒ CON NGƯỜI (HUMAN-IN-THE-LOOP):** Mọi kịch bản kiểm thử do AI sinh ra bắt buộc phải trải qua bước chạy Dry-Run kiểm chứng thực tế. Trong phân tích hiệu năng, **dữ liệu thô từ file log `.jtl` và mã nguồn SUT chính là thước đo chân lý duy nhất (Ground Truth)** để phát hiện và chỉnh đốn các ảo giác của AI.
 
